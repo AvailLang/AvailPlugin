@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Plugin" type="#org.jetbrains.idea.devkit.run.PluginConfigurationType" factoryName="Plugin">
+    <module name="Avail Plugin" />
+    <option name="VM_PARAMETERS" value="-Xmx512m -Xms256m -XX:MaxPermSize=250m -ea" />
+    <option name="PROGRAM_PARAMETERS" value="" />
+    <predefined_log_file id="idea.log" enabled="true" />
+    <method>
+      <option name="AntTarget" enabled="true" antfile="file://$PROJECT_DIR$/../../Avail/build.xml" target="generate-primitives-list" />
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

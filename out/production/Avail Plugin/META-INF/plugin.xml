@@ -26,12 +26,12 @@
     <fileTypeFactory implementation="org.availlang.plugin.file.AvailFileTypeFactory"/>
   </extensions>
 
-  <application-components>
-    <!--This is where we add the ApplicationComponents from core-->
-    <component>
-      <implementation-class>org.availlang.plugin.core.AvailComponent</implementation-class>
-    </component>
-  </application-components>
+  <!--<application-components>-->
+    <!--&lt;!&ndash;This is where we add the ApplicationComponents from core&ndash;&gt;-->
+    <!--<component>-->
+      <!--<implementation-class>org.availlang.plugin.core.AvailComponent</implementation-class>-->
+    <!--</component>-->
+  <!--</application-components>-->
 
   <actions>
     <!-- Add your actions here -->
