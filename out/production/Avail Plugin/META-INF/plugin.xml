@@ -1,0 +1,40 @@
+<idea-plugin>
+  <id>org.availlang</id>
+  <name>Avail</name>
+  <version>1.0</version>
+  <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+
+  <description><![CDATA[
+      A plugin for all things Avail!
+    ]]></description>
+
+  <change-notes><![CDATA[
+      There is where there once wasn't...
+    ]]>
+  </change-notes>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+  <idea-version since-build="173.0"/>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+       on how to target different products -->
+  <!-- uncomment to enable plugin in all products
+  <depends>com.intellij.modules.lang</depends>
+  -->
+
+  <extensions defaultExtensionNs="com.intellij">
+    <fileTypeFactory implementation="org.availlang.plugin.file.AvailFileTypeFactory"/>
+  </extensions>
+
+  <application-components>
+    <!--This is where we add the ApplicationComponents from core-->
+    <component>
+      <implementation-class>org.availlang.plugin.core.AvailComponent</implementation-class>
+    </component>
+  </application-components>
+
+  <actions>
+    <!-- Add your actions here -->
+  </actions>
+
+</idea-plugin>

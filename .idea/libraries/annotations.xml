@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="annotations">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../Avail/libraries/annotations-java8.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../Avail/libraries/jsr305.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../Avail/libraries/jsr305.jar!/" />
+    </SOURCES>
+  </library>
+</component>
