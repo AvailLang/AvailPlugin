@@ -24,17 +24,30 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <fileTypeFactory implementation="org.availlang.plugin.file.AvailFileTypeFactory"/>
+    <fileTypeFactory implementation="org.availlang.plugin.file.AvailRepoFileTypeFactory"/>
+    <lang.parserDefinition language="Avail" implementationClass="org.availlang.plugin.parser.AvailParserDefinition"/>
   </extensions>
 
-  <!--<application-components>-->
-    <!--&lt;!&ndash;This is where we add the ApplicationComponents from core&ndash;&gt;-->
-    <!--<component>-->
-      <!--<implementation-class>org.availlang.plugin.core.AvailComponent</implementation-class>-->
-    <!--</component>-->
-  <!--</application-components>-->
+  <application-components>
+    <!--This is where we add the ApplicationComponents from core-->
+    <component>
+      <implementation-class>org.availlang.plugin.core.AvailComponent</implementation-class>
+    </component>
+  </application-components>
 
   <actions>
-    <!-- Add your actions here -->
+    <action id="org.availlang.plugin.build.BuildModule"
+            class="org.availlang.plugin.build.BuildModule"
+            text="Build Avail Module"
+            description="The Avail build action for a module">
+      <add-to-group group-id="ProjectViewCompileGroup" anchor="last"/>
+    </action>
+    <action id="org.availlang.plugin.build.TestRunAllTests"
+            class="org.availlang.plugin.build.TestRunAllTests"
+            text="[Test] Run all tests"
+            description="Run all Avail tests">
+      <add-to-group group-id="ProjectViewCompileGroup" anchor="last"/>
+    </action>
   </actions>
 
 </idea-plugin>

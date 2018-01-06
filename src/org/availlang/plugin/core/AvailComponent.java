@@ -5,6 +5,8 @@ import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.utility.Nulls;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ApplicationComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +31,14 @@ import static com.avail.utility.Nulls.stripNull;
 public class AvailComponent
 implements ApplicationComponent
 {
+	public static @NotNull AvailComponent getInstance ()
+	{
+		final Application application = ApplicationManager.getApplication();
+		final AvailComponent component =
+			application.getComponent(AvailComponent.class);
+		assert component != null;
+		return component;
+	}
 
 	private @Nullable ModuleNameResolver resolver;
 

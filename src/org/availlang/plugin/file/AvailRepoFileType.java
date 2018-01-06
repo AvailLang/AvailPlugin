@@ -2,6 +2,7 @@ package org.availlang.plugin.file;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.util.IconLoader;
 import org.availlang.plugin.language.AvailLanguage;
+import org.availlang.plugin.language.AvailRepoLanguage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,45 +13,45 @@ import javax.swing.*;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class AvailFileType
+public class AvailRepoFileType
 extends LanguageFileType
 {
 	/**
-	 * The sole {@link AvailFileType}.
+	 * The sole {@link AvailRepoFileType}.
 	 */
-	public static final @NotNull AvailFileType soleInstance =
-		new AvailFileType();
+	public static final @NotNull AvailRepoFileType soleInstance =
+		new AvailRepoFileType();
 
 	/**
-	 * The {@link Icon} used to represent an {@link AvailFileType}.
+	 * The {@link Icon} used to represent an {@link AvailRepoFileType}.
 	 */
 	private static final @NotNull Icon fileIcon =
-		IconLoader.getIcon("/org/availlang/plugin/icons/ModuleInTree.png");
+		IconLoader.getIcon("/org/availlang/plugin/icons/AvailHammer.png");
 
 	/**
-	 * Construct an {@link AvailFileType}.
+	 * Construct an {@link AvailRepoFileType}.
 	 */
-	private AvailFileType ()
+	private AvailRepoFileType ()
 	{
-		super(AvailLanguage.soleInstance);
+		super(AvailRepoLanguage.soleInstance);
 	}
 
 	@Override
 	public @NotNull String getName ()
 	{
-		return "Avail file";
+		return "Avail repository file";
 	}
 
 	@Override
 	public @NotNull String getDescription ()
 	{
-		return "Avail language file";
+		return "Avail repository file";
 	}
 
 	@Override
 	public @NotNull String getDefaultExtension ()
 	{
-		return "avail";
+		return "repo";
 	}
 
 	@Override
