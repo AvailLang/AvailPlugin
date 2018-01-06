@@ -3,17 +3,15 @@ import com.avail.builder.AvailBuilder;
 import com.avail.builder.ResolvedModuleName;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task.Backgroundable;
 import com.intellij.openapi.progress.util.ProgressWindow;
-import com.intellij.openapi.project.Project;
+import org.availlang.plugin.actions.AvailAction;
 import org.availlang.plugin.core.AvailComponent;
 import org.availlang.plugin.language.AvailLanguage;
 import org.availlang.plugin.psi.AvailPsiFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code BuildModule} is {@link AnAction} that causes an {@link
@@ -22,14 +20,8 @@ import org.jetbrains.annotations.Nullable;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 public class BuildModule
-extends AnAction
+extends AvailAction
 {
-	private @Nullable AvailPsiFile psiFile (final AnActionEvent event)
-	{
-		final Object o = event.getData(CommonDataKeys.NAVIGATABLE);
-		return o instanceof AvailPsiFile ? (AvailPsiFile) o : null;
-	}
-
 	@Override
 	public void actionPerformed (final AnActionEvent event)
 	{
@@ -88,19 +80,18 @@ extends AnAction
 	}
 
 	@Override
-	public void update (final AnActionEvent event)
+	protected @NotNull String customMenuItem (
+		final @NotNull AvailPsiFile psiFile)
 	{
-		final Project project = event.getProject();
-		if (project != null)
-		{
-			final AvailPsiFile psiFile = psiFile(event);
-			if (psiFile != null)
-			{
-				final String option = "Build '"
-					+ psiFile.getVirtualFile().getNameWithoutExtension() + "'";
-				event.getPresentation().setText(option);
-				event.getPresentation().setEnabledAndVisible(true);
-			}
-		}
+		return  "Build '"
+			+ psiFile.getVirtualFile().getNameWithoutExtension() + "'";
+	}
+
+	@Override
+	protected boolean customVisibilityCheck (
+		final @NotNull AvailPsiFile psiFile)
+	{
+		// It can only be visible if the file has not yet been loaded.
+		return !AvailComponent.getInstance().isLoaded(psiFile);
 	}
 }

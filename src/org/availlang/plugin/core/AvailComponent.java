@@ -1,13 +1,14 @@
 package org.availlang.plugin.core;
 import com.avail.AvailRuntime;
 import com.avail.builder.AvailBuilder;
+import com.avail.builder.AvailBuilder.LoadedModule;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
-import com.avail.utility.Nulls;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ApplicationComponent;
+import org.availlang.plugin.psi.AvailPsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,6 +19,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.avail.utility.Nulls.stripNull;
 
@@ -59,6 +62,70 @@ implements ApplicationComponent
 	public @NotNull AvailRuntime getRuntime ()
 	{
 		return  stripNull(runtime);
+	}
+
+	/**
+	 * Answer the available entry points.
+	 *
+	 * @return A {@code String} {@link List} of available entry points.
+	 */
+	public @NotNull List<String> availableEntryPoints ()
+	{
+		final List<String> entryPoints = new ArrayList<>();
+		final AvailBuilder builder = AvailComponent.getInstance().getBuilder();
+		for (final LoadedModule loadedModule : builder.loadedModulesCopy())
+		{
+			if (!loadedModule.entryPoints().isEmpty())
+			{
+				entryPoints.addAll(loadedModule.entryPoints());
+			}
+		}
+		return entryPoints;
+	}
+
+	/**
+	 * Calculate available entry points.
+	 *
+	 * @return A {@code String} {@link List} of available entry points.
+	 */
+	public @NotNull List<LoadedModule> loadedModules ()
+	{
+		return AvailComponent.getInstance().getBuilder().loadedModulesCopy();
+	}
+
+	/**
+	 * Determine if hte {@link AvailPsiFile} has been loaeded.
+	 *
+	 * @return {@code true} if it has; {@code false} otherwise.
+	 */
+	public boolean isLoaded (final @NotNull AvailPsiFile psiFile)
+	{
+		for (final LoadedModule loadedModule : loadedModules())
+		{
+			if (loadedModule.name.equals(psiFile.resolvedModuleName()))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Calculate available entry points.
+	 *
+	 * @return A {@code String} {@link List} of available entry points.
+	 */
+	public @Nullable LoadedModule loadedModule (
+		final @NotNull AvailPsiFile psiFile)
+	{
+		for (final LoadedModule loadedModule : loadedModules())
+		{
+			if (loadedModule.name.equals(psiFile.resolvedModuleName()))
+			{
+				return loadedModule;
+			}
+		}
+		return null;
 	}
 
 	@Override

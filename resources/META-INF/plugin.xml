@@ -48,6 +48,12 @@
             description="Run all Avail tests">
       <add-to-group group-id="ProjectViewCompileGroup" anchor="last"/>
     </action>
+    <action id="org.availlang.plugin.actions.RunEntryPoint"
+            class="org.availlang.plugin.actions.RunEntryPoint"
+            text="Run Entry Point"
+            description="Run an Avail enyry point">
+      <add-to-group group-id="ProjectViewCompileGroup" anchor="last"/>
+    </action>
   </actions>
 
 </idea-plugin>
