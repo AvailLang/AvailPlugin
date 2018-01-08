@@ -6,7 +6,6 @@
     <predefined_log_file id="idea.log" enabled="true" />
     <method>
       <option name="AntTarget" enabled="true" antfile="file://$PROJECT_DIR$/../../Avail/build.xml" target="generate-primitives-list" />
-      <option name="Make" enabled="true" />
     </method>
   </configuration>
 </component>

@@ -4,7 +4,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.IconLoader;
 import org.availlang.plugin.psi.AvailPsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +53,7 @@ extends AnAction
 	{
 		try
 		{
-			final Object o = event.getData(CommonDataKeys.NAVIGATABLE);
+			final Object o = event.getData(CommonDataKeys.PSI_FILE);
 			return o instanceof AvailPsiFile ? (AvailPsiFile) o : null;
 		}
 		catch (final Throwable e)

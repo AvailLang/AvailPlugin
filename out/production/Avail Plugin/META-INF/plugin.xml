@@ -38,11 +38,25 @@
   </application-components>
 
   <actions>
-    <action id="org.availlang.plugin.build.BuildModule"
+    <!--<group id="BuildGroup" text="Build Avail Module" popup="false">-->
+      <!--<add-to-group group-id="ProjectViewPopupMenuRunGroup" />-->
+      <!--<add-to-group group-id="EditorTabPopupMenu" />-->
+      <!--<add-to-group group-id="EditorTabPopupMenu"/>-->
+      <!--<add-to-group group-id="ConsoleEditorPopupMenu"/>-->
+      <!--<action id="org.availlang.plugin.build.ProjectBuildModule"-->
+              <!--class="org.availlang.plugin.build.BuildModule"-->
+              <!--text="Build Avail Module"-->
+              <!--description="The Avail build action for a module">-->
+      <!--</action>-->
+    <!--</group>-->
+    <action id="org.availlang.plugin.build.FileTabBuildModule"
             class="org.availlang.plugin.build.BuildModule"
             text="Build Avail Module"
             description="The Avail build action for a module">
-      <add-to-group group-id="ProjectViewCompileGroup" anchor="last"/>
+      <add-to-group group-id="ProjectViewPopupMenuRunGroup" anchor="last"/>
+      <add-to-group group-id="EditorPopupMenu"/>
+      <add-to-group group-id="EditorTabPopupMenu"/>
+      <add-to-group group-id="ConsoleEditorPopupMenu"/>
     </action>
     <!--<action id="org.availlang.plugin.build.TestRunAllTests"-->
             <!--class="org.availlang.plugin.build.TestRunAllTests"-->
@@ -56,14 +70,30 @@
             description="Run an Avail enyry point">
       <add-to-group group-id="ProjectViewCompileGroup" anchor="last"/>
     </action>
-    <action id="org.availlang.plugin.build.BuildRoot"
-            class="org.availlang.plugin.build.TestRunAllTests" text="Avail Root"
-            description="build a root">
-      <add-to-group group-id="MarkRootGroup" anchor="last"/>
-    </action>
+    <!--<action id="org.availlang.plugin.build.BuildRoot"-->
+            <!--class="org.availlang.plugin.build.TestRunAllTests" text="Avail Root"-->
+            <!--description="build a root">-->
+      <!--<add-to-group group-id="MarkRootGroup" anchor="last"/>-->
+    <!--</action>-->
+    <!-- The <group> element defines an action group. <action>, <group> and
+      <separator> elements defined within it are automatically included in the group.
+      The mandatory "id" attribute specifies an unique identifier for the action.
+      The optional "class" attribute specifies the full-qualified name of
+      the class implementing the group. If not specified,
+      com.intellij.openapi.actionSystem.DefaultActionGroup is used.
+      The optional "text" attribute specifies the text of the group (text
+      for the menu item showing the submenu).
+      The optional "description" attribute specifies the text which is displayed
+      in the status bar when the group is focused.
+      The optional "icon" attribute specifies the icon which is displayed on
+      the toolbar button or next to the group.
+      The optional "popup" attribute specifies how the group is presented in
+      the menu. If a group has popup="true", actions in it are placed in a
+      submenu; for popup="false", actions are displayed as a section of the
+      same menu delimited by separators. -->
     <group id="BuildRootGroup" class="org.availlang.plugin.actions.groups.BuildRootGroup" popup="true"
            text="Build Root" description="Build Avail roots">
-      <add-to-group group-id="ProjectViewCompileGroup" anchor="last"/>
+      <add-to-group group-id="ProjectViewPopupMenuRunGroup" anchor="last"/>
     </group>
     <!--<action id="org.availlang.plugin.build.TestRunAllTests"-->
             <!--class="org.availlang.plugin.build.TestRunAllTests" text="Do it!"-->
