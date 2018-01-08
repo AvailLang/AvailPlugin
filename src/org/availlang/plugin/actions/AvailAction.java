@@ -2,10 +2,14 @@ package org.availlang.plugin.actions;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.IconLoader;
 import org.availlang.plugin.psi.AvailPsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 
 /**
  * An {@code AvailAction} is an {@link AnAction} specific to {@link
@@ -17,6 +21,29 @@ public abstract class AvailAction
 extends AnAction
 {
 	/**
+	 * Answer the {@link Icon} associated with this action.
+	 *
+	 * @return An {@code Icon} if available or {@code null}.
+	 */
+	protected @Nullable Icon icon ()
+	{
+		return null;
+	}
+
+	/**
+	 * Construct an {@link AvailAction}.
+	 */
+	public AvailAction () {}
+
+	public AvailAction (
+		final @Nullable String text,
+		final @Nullable String description,
+		final @Nullable Icon icon)
+	{
+		super(text, description, icon);
+	}
+
+	/**
 	 * Answer a {@link AvailPsiFile}.
 	 *
 	 * @param event
@@ -25,8 +52,15 @@ extends AnAction
 	 */
 	protected @Nullable AvailPsiFile psiFile (final AnActionEvent event)
 	{
-		final Object o = event.getData(CommonDataKeys.NAVIGATABLE);
-		return o instanceof AvailPsiFile ? (AvailPsiFile) o : null;
+		try
+		{
+			final Object o = event.getData(CommonDataKeys.NAVIGATABLE);
+			return o instanceof AvailPsiFile ? (AvailPsiFile) o : null;
+		}
+		catch (final Throwable e)
+		{
+			return null;
+		}
 	}
 
 	/**
@@ -37,7 +71,7 @@ extends AnAction
 	 * @return The name if available or an empty String for no custom name.
 	 */
 	protected @NotNull String customMenuItem (
-		final @NotNull AvailPsiFile psiFile)
+		final @Nullable AvailPsiFile psiFile)
 	{
 		return "";
 	}
@@ -50,7 +84,7 @@ extends AnAction
 	 * @return {@code true} if it should be visible; {@code false} otherwise.
 	 */
 	protected boolean customVisibilityCheck (
-		final @NotNull AvailPsiFile psiFile)
+		final @Nullable AvailPsiFile psiFile)
 	{
 		return true;
 	}
@@ -62,22 +96,29 @@ extends AnAction
 		if (project != null)
 		{
 			final AvailPsiFile psiFile = psiFile(event);
-			if (psiFile != null)
+			if (customVisibilityCheck(psiFile))
 			{
-				if (customVisibilityCheck(psiFile))
+				final String customMenuItem = customMenuItem(psiFile);
+				if (!customMenuItem.isEmpty())
 				{
-					final String customMenuItem = customMenuItem(psiFile);
-					if (!customMenuItem.isEmpty())
-					{
-						event.getPresentation().setText(customMenuItem);
-					}
-					event.getPresentation().setEnabledAndVisible(true);
+					event.getPresentation().setText(customMenuItem);
 				}
-				else
+				final Icon icon = icon();
+				if (icon != null)
 				{
-					event.getPresentation().setEnabledAndVisible(false);
+					final Presentation presentation = getTemplatePresentation();
+					presentation.setIcon(icon);
+					presentation.setDisabledIcon(icon);
+					presentation.setHoveredIcon(icon);
+					presentation.setSelectedIcon(icon);
 				}
+				event.getPresentation().setEnabledAndVisible(true);
 			}
+			else
+			{
+				event.getPresentation().setEnabledAndVisible(false);
+			}
+
 		}
 	}
 }

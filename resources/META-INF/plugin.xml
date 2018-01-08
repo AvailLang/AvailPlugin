@@ -25,6 +25,8 @@
   <extensions defaultExtensionNs="com.intellij">
     <fileTypeFactory implementation="org.availlang.plugin.file.AvailFileTypeFactory"/>
     <fileTypeFactory implementation="org.availlang.plugin.file.AvailRepoFileTypeFactory"/>
+    <!--<fileTypeFactory implementation="org.availlang.plugin.file.AvailDirectoryFileTypeFactory"/>-->
+
     <lang.parserDefinition language="Avail" implementationClass="org.availlang.plugin.parser.AvailParserDefinition"/>
   </extensions>
 
@@ -42,18 +44,32 @@
             description="The Avail build action for a module">
       <add-to-group group-id="ProjectViewCompileGroup" anchor="last"/>
     </action>
-    <action id="org.availlang.plugin.build.TestRunAllTests"
-            class="org.availlang.plugin.build.TestRunAllTests"
-            text="[Test] Run all tests"
-            description="Run all Avail tests">
-      <add-to-group group-id="ProjectViewCompileGroup" anchor="last"/>
-    </action>
+    <!--<action id="org.availlang.plugin.build.TestRunAllTests"-->
+            <!--class="org.availlang.plugin.build.TestRunAllTests"-->
+            <!--text="[Test] Run all tests"-->
+            <!--description="Run all Avail tests">-->
+      <!--<add-to-group group-id="ProjectViewCompileGroup" anchor="last"/>-->
+    <!--</action>-->
     <action id="org.availlang.plugin.actions.RunEntryPoint"
             class="org.availlang.plugin.actions.RunEntryPoint"
             text="Run Entry Point"
             description="Run an Avail enyry point">
       <add-to-group group-id="ProjectViewCompileGroup" anchor="last"/>
     </action>
+    <action id="org.availlang.plugin.build.BuildRoot"
+            class="org.availlang.plugin.build.TestRunAllTests" text="Avail Root"
+            description="build a root">
+      <add-to-group group-id="MarkRootGroup" anchor="last"/>
+    </action>
+    <group id="BuildRootGroup" class="org.availlang.plugin.actions.groups.BuildRootGroup" popup="true"
+           text="Build Root" description="Build Avail roots">
+      <add-to-group group-id="ProjectViewCompileGroup" anchor="last"/>
+    </group>
+    <!--<action id="org.availlang.plugin.build.TestRunAllTests"-->
+            <!--class="org.availlang.plugin.build.TestRunAllTests" text="Do it!"-->
+            <!--description="Do it">-->
+      <!--<add-to-group group-id="MarkRootGroup" anchor="first"/>-->
+    <!--</action>-->
   </actions>
 
 </idea-plugin>

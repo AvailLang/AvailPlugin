@@ -68,7 +68,7 @@ extends ChooseElementsDialog<String>
 	private static List<String> calculateEntryPoints ()
 	{
 		final List<String> entryPoints = new ArrayList<>();
-		final AvailBuilder builder = AvailComponent.getInstance().getBuilder();
+		final AvailBuilder builder = AvailComponent.getInstance().builder();
 		for (final LoadedModule loadedModule : builder.loadedModulesCopy())
 		{
 			if (!loadedModule.entryPoints().isEmpty())

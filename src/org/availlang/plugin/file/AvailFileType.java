@@ -1,11 +1,13 @@
 package org.availlang.plugin.file;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.util.IconLoader;
+import org.availlang.plugin.icons.AvailIcon;
 import org.availlang.plugin.language.AvailLanguage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.net.URL;
 
 /**
  * An {@code AvailFileType} is a {@link LanguageFileType} specific to Avail.
@@ -21,11 +23,15 @@ extends LanguageFileType
 	public static final @NotNull AvailFileType soleInstance =
 		new AvailFileType();
 
-	/**
-	 * The {@link Icon} used to represent an {@link AvailFileType}.
-	 */
-	private static final @NotNull Icon fileIcon =
-		IconLoader.getIcon("/org/availlang/plugin/icons/ModuleInTree.png");
+
+	private static final @NotNull Icon fileIcon;
+//		IconLoader.getIcon("/org/availlang/plugin/icons/ModuleInTree.png");
+//		IconLoader.getIcon("resources/icons/ModuleInTree.png");
+	static
+	{
+		final URL iconUrl = AvailFileType.class.getResource("/icons/ModuleInTree.png");
+		fileIcon = IconLoader.findIcon(iconUrl);
+	}
 
 	/**
 	 * Construct an {@link AvailFileType}.
@@ -56,6 +62,6 @@ extends LanguageFileType
 	@Override
 	public @Nullable Icon getIcon ()
 	{
-		return fileIcon;
+		return AvailIcon.availFileIcon;
 	}
 }

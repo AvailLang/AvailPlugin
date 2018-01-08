@@ -6,8 +6,6 @@ import com.avail.builder.ModuleRoots;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.builder.UnresolvedDependencyException;
 import com.intellij.extapi.psi.PsiFileBase;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.psi.FileViewProvider;
 import org.availlang.plugin.core.AvailComponent;
@@ -58,9 +56,10 @@ extends PsiFileBase
 		if (resolvedModuleName == null)
 		{
 			final String path = getVirtualFile().getPath();
+			final AvailComponent component = AvailComponent.getInstance();
 			final ModuleNameResolver resolver =
-				AvailComponent.getInstance().getResolver();
-			final ModuleRoots roots = resolver.moduleRoots();
+				component.resolver();
+			final ModuleRoots roots = component.moduleRoots();
 			for (final ModuleRoot root : roots.roots())
 			{
 				final File sourceDirectory = root.sourceDirectory();

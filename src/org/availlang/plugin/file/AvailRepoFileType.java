@@ -1,6 +1,7 @@
 package org.availlang.plugin.file;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.util.IconLoader;
+import org.availlang.plugin.icons.AvailIcon;
 import org.availlang.plugin.language.AvailLanguage;
 import org.availlang.plugin.language.AvailRepoLanguage;
 import org.jetbrains.annotations.NotNull;
@@ -21,12 +22,6 @@ extends LanguageFileType
 	 */
 	public static final @NotNull AvailRepoFileType soleInstance =
 		new AvailRepoFileType();
-
-	/**
-	 * The {@link Icon} used to represent an {@link AvailRepoFileType}.
-	 */
-	private static final @NotNull Icon fileIcon =
-		IconLoader.getIcon("/org/availlang/plugin/icons/AvailHammer.png");
 
 	/**
 	 * Construct an {@link AvailRepoFileType}.
@@ -57,6 +52,6 @@ extends LanguageFileType
 	@Override
 	public @Nullable Icon getIcon ()
 	{
-		return fileIcon;
+		return AvailIcon.availRepoFileIcon;
 	}
 }

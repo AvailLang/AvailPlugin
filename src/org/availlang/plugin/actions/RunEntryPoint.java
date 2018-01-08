@@ -5,7 +5,6 @@ import com.avail.builder.AvailBuilder.LoadedModule;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -18,9 +17,7 @@ import org.availlang.plugin.core.AvailComponent;
 import org.availlang.plugin.dialogs.TextInputDialog;
 import org.availlang.plugin.psi.AvailPsiFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
@@ -49,7 +46,7 @@ extends AvailAction
 		}
 		final Project project = event.getProject();
 		final ProgressManager manager = ProgressManager.getInstance();
-		final AvailBuilder builder = AvailComponent.getInstance().getBuilder();
+		final AvailBuilder builder = AvailComponent.getInstance().builder();
 		final StringJoiner sj = new StringJoiner("\n");
 		sj.add("Enter one of the following entry points:");
 		entryPoints.forEach(sj::add);

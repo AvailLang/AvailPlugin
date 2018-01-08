@@ -8,8 +8,11 @@ import com.intellij.openapi.progress.Task.Backgroundable;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import org.availlang.plugin.actions.AvailAction;
 import org.availlang.plugin.core.AvailComponent;
+import org.availlang.plugin.icons.AvailIcon;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -20,11 +23,21 @@ import java.util.concurrent.Semaphore;
 public class TestRunAllTests
 extends AvailAction
 {
+	public TestRunAllTests () {}
+
+	public TestRunAllTests (
+		final @Nullable  String text,
+		final @Nullable  String description,
+		final @Nullable  Icon icon)
+	{
+		super("Test action", "test action", AvailIcon.availDirectoryFileIcon);
+	}
+
 	@Override
 	public void actionPerformed (final AnActionEvent event)
 	{
 		final ProgressManager manager = ProgressManager.getInstance();
-		final AvailBuilder builder = AvailComponent.getInstance().getBuilder();
+		final AvailBuilder builder = AvailComponent.getInstance().builder();
 		manager.runProcessWithProgressAsynchronously(
 			new Backgroundable(
 				event.getProject(),
@@ -32,7 +45,7 @@ extends AvailAction
 				false)
 			{
 				@Override
-				public void run (@NotNull final ProgressIndicator progress)
+				public void run (final @NotNull ProgressIndicator progress)
 				{
 					final ProgressWindow window = (ProgressWindow) progress;
 					window.setTitle("Running all tests");
@@ -47,5 +60,17 @@ extends AvailAction
 				}
 			},
 			new ProgressWindow(true, event.getProject()));
+	}
+
+	@Override
+	public void update (final AnActionEvent event)
+	{
+		super.update(event);
+	}
+
+	@Override
+	protected @Nullable Icon icon ()
+	{
+		return AvailIcon.availDirectoryFileIcon;
 	}
 }
