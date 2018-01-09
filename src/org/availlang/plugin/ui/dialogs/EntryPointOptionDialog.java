@@ -1,6 +1,7 @@
-package org.availlang.plugin.dialogs;
+package org.availlang.plugin.ui.dialogs;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.AvailBuilder.LoadedModule;
+import com.avail.linking.EntryPoint;
 import com.intellij.ide.util.ChooseElementsDialog;
 import com.intellij.openapi.project.Project;
 import org.availlang.plugin.core.AvailComponent;
@@ -38,7 +39,7 @@ extends ChooseElementsDialog<String>
 	 */
 	public @NotNull String selectedEntryPoint ()
 	{
-		final String item = getChosenElements().iterator().next();
+		final String item = myChooser.getSelectedElement();
 		assert item != null;
 		return item;
 	}
@@ -57,7 +58,28 @@ extends ChooseElementsDialog<String>
 			"Run Entry Point",
 			"Run Avail Entry Point",
 			true);
+		myChooser.setSingleSelectionMode();
+	}
 
+	/**
+	 * Construct a {@link EntryPointOptionDialog}.
+	 *
+	 * @param project
+	 *        A {@link Project}.
+	 * @param entryPoints
+	 *        The {@link List} of {@code String} {@link EntryPoint}s to run.
+	 */
+	public EntryPointOptionDialog (
+		final @NotNull Project project,
+		final @NotNull List<String> entryPoints)
+	{
+		super(
+			project,
+			entryPoints,
+			"Run Entry Point",
+			"Run Avail Entry Point",
+			true);
+		myChooser.setSingleSelectionMode();
 	}
 
 	/**

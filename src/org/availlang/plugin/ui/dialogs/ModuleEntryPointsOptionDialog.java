@@ -1,4 +1,4 @@
-package org.availlang.plugin.dialogs;
+package org.availlang.plugin.ui.dialogs;
 import com.intellij.ide.util.ChooseElementsDialog;
 import com.intellij.openapi.project.Project;
 import org.availlang.plugin.core.utility.ModuleEntryPoints;

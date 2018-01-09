@@ -119,10 +119,9 @@ extends AvailAction
 	protected @NotNull String customMenuItem (
 		final @Nullable AvailPsiFile psiFile)
 	{
-		final AvailPsiFile file = psiFile;
-		assert file != null;
+		assert psiFile != null;
 		return  "Build '"
-			+ file.getVirtualFile().getNameWithoutExtension() + "'";
+			+ psiFile.getVirtualFile().getNameWithoutExtension() + "'";
 	}
 
 	@Override
@@ -134,8 +133,6 @@ extends AvailAction
 			return false;
 		}
 		// It can only be visible if the file has not yet been loaded.
-		final AvailPsiFile file = psiFile;
-		assert file != null;
-		return !AvailComponent.getInstance().isLoaded(file);
+		return !AvailComponent.getInstance().isLoaded(psiFile);
 	}
 }

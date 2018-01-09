@@ -1,6 +1,7 @@
-package org.availlang.plugin.dialogs;
+package org.availlang.plugin.ui.dialogs;
 import com.avail.builder.ResolvedModuleName;
 import com.intellij.ide.util.ChooseElementsDialog;
+import com.intellij.ide.util.ElementsChooser;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +27,25 @@ public class ResolvedModuleNameOptionDialog
 	protected @Nullable Icon getItemIcon (final ResolvedModuleName item)
 	{
 		return null;
+	}
+
+	/**
+	 * Set this {@link ResolvedModuleNameOptionDialog} to only {@linkplain
+	 * ElementsChooser#setSingleSelectionMode() select one} module.
+	 */
+	public void setSingleSelect ()
+	{
+		myChooser.setSingleSelectionMode();
+	}
+
+	/**
+	 * Answer the selected {@link ResolvedModuleName}.
+	 *
+	 * @return A {@code ResolvedModuleName} or {@code null} if nothing selected.
+	 */
+	public @Nullable ResolvedModuleName getSelection ()
+	{
+		return myChooser.getSelectedElement();
 	}
 
 	/**

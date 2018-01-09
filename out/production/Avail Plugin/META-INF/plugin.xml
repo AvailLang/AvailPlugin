@@ -38,6 +38,88 @@
   </application-components>
 
   <actions>
+    <!--<action id="org.availlang.plugin.build.BuildModule"-->
+            <!--class="org.availlang.plugin.build.BuildModule"-->
+            <!--text="Build Avail Module"-->
+            <!--description="The Avail build action for a module">-->
+      <!--<add-to-group group-id="ProjectViewPopupMenuRunGroup" anchor="last"/>-->
+      <!--<add-to-group group-id="EditorPopupMenu"/>-->
+      <!--<add-to-group group-id="EditorTabPopupMenu"/>-->
+      <!--<add-to-group group-id="ConsoleEditorPopupMenu"/>-->
+    <!--</action>-->
+    <group id="AvailModuleGroupActions"
+           popup="false"
+           description="Interact with module">
+      <add-to-group group-id="ProjectViewPopupMenuRunGroup" anchor="last"/>
+      <add-to-group group-id="EditorPopupMenu"/>
+      <add-to-group group-id="EditorTabPopupMenu"/>
+      <separator/>
+      <action id="org.availlang.plugin.build.BuildModuleEditor"
+              class="org.availlang.plugin.build.BuildModule"
+              text="Build Avail Module"
+              description="The Avail build action for a module" />
+      <action id="org.availlang.plugin.actions.RunEntryPointEditor"
+              class="org.availlang.plugin.actions.RunEntryPoint"
+              text="Run Entry Point"
+              description="Run an Avail entry point" />
+      <group id="BuildRootGroup"
+             class="org.availlang.plugin.actions.groups.BuildRootGroup" popup="true"
+             text="Avail Roots"
+             description="Build option for modules at top level of Avail roots">
+      </group>
+      <group id="EntryPointModuleGroup"
+             class="org.availlang.plugin.actions.groups.EntryPointModuleGroup" popup="true"
+             text="Entry Point Modules for Roots"
+             description="Build modules with entry points for Avail roots">
+      </group>
+      <group id="RunEntryPointModuleGroup16"
+             class="org.availlang.plugin.actions.groups.RunEntryPointModuleGroup" popup="true"
+             text="Run Entry Point Modules for Roots"
+             description="Build modules with entry points for Avail roots">
+      </group>
+      <separator/>
+    </group>
+
+    <group id="AvailModuleBuildGroup"
+           popup="false"
+           description="Interact with module">
+      <add-to-group group-id="BuildMenu" anchor="last"/>
+      <separator/>
+      <action id="org.availlang.plugin.build.BuildModuleEditor"
+              class="org.availlang.plugin.build.BuildModule"
+              text="Build Avail Module"
+              description="The Avail build action for a module" />
+      <group id="BuildRootGroup2"
+             class="org.availlang.plugin.actions.groups.BuildRootGroup" popup="true"
+             text="Avail Roots"
+             description="Build option for modules at top level of Avail roots">
+      </group>
+      <group id="EntryPointModuleGroup2"
+             class="org.availlang.plugin.actions.groups.EntryPointModuleGroup" popup="true"
+             text="Entry Point Modules for Roots"
+             description="Build modules with entry points for Avail roots">
+      </group>
+      <separator/>
+    </group>
+
+    <group id="AvailEntryPointRunGroup"
+           popup="false"
+           description="Interact with module">
+      <add-to-group group-id="RunMenu" anchor="last"/>
+      <separator/>
+      <action id="org.availlang.plugin.actions.RunEntryPointEditor"
+              class="org.availlang.plugin.actions.RunEntryPoint"
+              text="Run Entry Point"
+              description="Run an Avail entry point" />
+      <group id="RunEntryPointModuleGroup"
+             class="org.availlang.plugin.actions.groups.RunEntryPointModuleGroup" popup="true"
+             text="Entry Point Modules for Roots"
+             description="Build modules with entry points for Avail roots">
+      </group>
+      <separator/>
+    </group>
+
+
     <!--<group id="BuildGroup" text="Build Avail Module" popup="false">-->
       <!--<add-to-group group-id="ProjectViewPopupMenuRunGroup" />-->
       <!--<add-to-group group-id="EditorTabPopupMenu" />-->
@@ -49,29 +131,14 @@
               <!--description="The Avail build action for a module">-->
       <!--</action>-->
     <!--</group>-->
-    <action id="org.availlang.plugin.build.FileTabBuildModule"
-            class="org.availlang.plugin.build.BuildModule"
-            text="Build Avail Module"
-            description="The Avail build action for a module">
-      <add-to-group group-id="ProjectViewPopupMenuRunGroup" anchor="last"/>
-      <add-to-group group-id="EditorPopupMenu"/>
-      <add-to-group group-id="EditorTabPopupMenu"/>
-      <add-to-group group-id="ConsoleEditorPopupMenu"/>
-    </action>
-    <!--<action id="org.availlang.plugin.build.TestRunAllTests"-->
-            <!--class="org.availlang.plugin.build.TestRunAllTests"-->
+    <!--<action id="org.availlang.plugin.build.TestAction"-->
+            <!--class="org.availlang.plugin.build.TestAction"-->
             <!--text="[Test] Run all tests"-->
             <!--description="Run all Avail tests">-->
       <!--<add-to-group group-id="ProjectViewCompileGroup" anchor="last"/>-->
     <!--</action>-->
-    <action id="org.availlang.plugin.actions.RunEntryPoint"
-            class="org.availlang.plugin.actions.RunEntryPoint"
-            text="Run Entry Point"
-            description="Run an Avail enyry point">
-      <add-to-group group-id="ProjectViewCompileGroup" anchor="last"/>
-    </action>
     <!--<action id="org.availlang.plugin.build.BuildRoot"-->
-            <!--class="org.availlang.plugin.build.TestRunAllTests" text="Avail Root"-->
+            <!--class="org.availlang.plugin.build.TestAction" text="Avail Root"-->
             <!--description="build a root">-->
       <!--<add-to-group group-id="MarkRootGroup" anchor="last"/>-->
     <!--</action>-->
@@ -91,15 +158,11 @@
       the menu. If a group has popup="true", actions in it are placed in a
       submenu; for popup="false", actions are displayed as a section of the
       same menu delimited by separators. -->
-    <group id="BuildRootGroup" class="org.availlang.plugin.actions.groups.BuildRootGroup" popup="true"
-           text="Avail Roots" description="Build Avail roots">
-      <add-to-group group-id="BuildMenu" anchor="last"/>
-      <add-to-group group-id="ProjectViewCompileGroup" anchor="last"/>
-    </group>
-    <!--<action id="org.availlang.plugin.build.TestRunAllTests"-->
-            <!--class="org.availlang.plugin.build.TestRunAllTests" text="Do it!"-->
-            <!--description="Do it">-->
-      <!--<add-to-group group-id="MarkRootGroup" anchor="first"/>-->
+    <!--<action id="org.availlang.plugin.actions.TestAction
+            class="org.availlang.plugin.actions.TestAction
+            text="Do it!"
+            description="Do it">
+          <add-to-group group-id="MarkRootGroup" anchor="first"/>-->
     <!--</action>-->
   </actions>
 

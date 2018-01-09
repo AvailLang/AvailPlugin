@@ -1,11 +1,9 @@
-package org.availlang.plugin.dialogs;
+package org.availlang.plugin.ui.dialogs;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages.InputDialog;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 /**
  * A {@code TextInputDialog} is an {@link InputDialog}.

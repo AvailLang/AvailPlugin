@@ -137,6 +137,29 @@ implements ApplicationComponent
 	}
 
 	/**
+	 * Answer the {@link List} of {@code String} entry points for the given
+	 * {@link ResolvedModuleName}.
+	 *
+	 * @param resolvedModuleName
+	 *        The {@code ResolvedModuleName}.
+	 * @return A list.
+	 */
+	public @NotNull List<String> entryPoints (
+		final @NotNull ResolvedModuleName resolvedModuleName)
+	{
+		final List<ModuleEntryPoints> mepList =
+			moduleEntryPoints(resolvedModuleName.rootName());
+		for (final ModuleEntryPoints mep : mepList)
+		{
+			if (mep.resolvedModuleName().equals(resolvedModuleName))
+			{
+				return mep.entryPoints();
+			}
+		}
+		return Collections.emptyList();
+	}
+
+	/**
 	 * Answer the available entry points.
 	 *
 	 * @return A {@code String} {@link List} of available entry points.
@@ -207,7 +230,7 @@ implements ApplicationComponent
 	 */
 	public @NotNull ModuleRoots moduleRoots ()
 	{
-		return resolver.moduleRoots();
+		return resolver().moduleRoots();
 	}
 
 	/**

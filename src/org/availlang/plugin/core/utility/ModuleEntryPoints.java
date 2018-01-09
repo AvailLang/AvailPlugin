@@ -24,7 +24,7 @@ public class ModuleEntryPoints
 	 *
 	 * @return A list.
 	 */
-	public @NotNull List<String> getEntryPoints ()
+	public @NotNull List<String> entryPoints ()
 	{
 		return entryPoints;
 	}

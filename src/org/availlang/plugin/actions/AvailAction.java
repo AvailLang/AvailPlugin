@@ -30,11 +30,39 @@ extends AnAction
 	}
 
 	/**
+	 * Answer the {@link Project} for the given {@link AnActionEvent}.
+	 *
+	 * @param event
+	 *        The {@code AnActionEvent} that provides the {@code Project}.
+	 * @return A {@code Project}.
+	 */
+	protected @NotNull Project getProject (final @NotNull AnActionEvent event)
+	{
+		final Project project = event.getProject();
+		assert project != null : String.format(
+			"%s performed received AnActionEvent, %s, "
+				+ "that did not have a Project",
+			getClass().getSimpleName(),
+			event.getPresentation());
+		return project;
+	}
+
+	/**
 	 * Construct an {@link AvailAction}.
 	 */
 	public AvailAction () {}
 
-	public AvailAction (
+	/**
+	 * Construct an {@link AvailAction}.
+	 *
+	 * @param text
+	 *        The {@link Presentation} text.
+	 * @param description
+	 *        The {@code Presentation} description.
+	 * @param icon
+	 *        The {@code Presentation} {@link Icon}.
+	 */
+	AvailAction (
 		final @Nullable String text,
 		final @Nullable String description,
 		final @Nullable Icon icon)
