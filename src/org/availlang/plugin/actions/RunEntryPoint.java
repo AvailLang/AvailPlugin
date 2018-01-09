@@ -17,6 +17,7 @@ import org.availlang.plugin.core.AvailComponent;
 import org.availlang.plugin.dialogs.TextInputDialog;
 import org.availlang.plugin.psi.AvailPsiFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -97,8 +98,12 @@ extends AvailAction
 
 	@Override
 	protected boolean customVisibilityCheck (
-		final @NotNull AvailPsiFile psiFile)
+		final @Nullable AvailPsiFile psiFile)
 	{
+		if (psiFile == null)
+		{
+			return false;
+		}
 		final LoadedModule loadedModule =
 			AvailComponent.getInstance().loadedModule(psiFile);
 		if (loadedModule == null)

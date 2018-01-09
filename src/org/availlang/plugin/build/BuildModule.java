@@ -1,6 +1,7 @@
 package org.availlang.plugin.build;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ResolvedModuleName;
+import com.avail.utility.evaluation.Continuation0;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -38,6 +39,14 @@ extends AvailAction
 		}
 	}
 
+	public static void build (
+		final @NotNull AnActionEvent event,
+		final @NotNull ProgressManager manager,
+		final @NotNull ResolvedModuleName resolvedModuleName)
+	{
+		build(event, manager, resolvedModuleName, () -> {});
+	}
+
 	/**
 	 * Build a {@link ResolvedModuleName}.
 	 *
@@ -51,7 +60,8 @@ extends AvailAction
 	public static void build (
 		final @NotNull AnActionEvent event,
 		final @NotNull ProgressManager manager,
-		final @NotNull ResolvedModuleName resolvedModuleName)
+		final @NotNull ResolvedModuleName resolvedModuleName,
+		final @NotNull Continuation0 onSuccess)
 	{
 		final AvailBuilder builder =
 			AvailComponent.getInstance().builder();
@@ -64,6 +74,12 @@ extends AvailAction
 				label,
 				true)
 			{
+				@Override
+				public void onSuccess ()
+				{
+					onSuccess.value();
+				}
+
 				@Override
 				public void run (@NotNull final ProgressIndicator progress)
 				{
@@ -113,6 +129,10 @@ extends AvailAction
 	protected boolean customVisibilityCheck (
 		final @Nullable AvailPsiFile psiFile)
 	{
+		if (psiFile == null)
+		{
+			return false;
+		}
 		// It can only be visible if the file has not yet been loaded.
 		final AvailPsiFile file = psiFile;
 		assert file != null;

@@ -15,6 +15,7 @@ import org.availlang.plugin.psi.AvailPsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -56,12 +57,31 @@ extends AvailAction
 
 		if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE)
 		{
-			final List<ResolvedModuleName> toBuildList =
-				dialog.getChosenElements();
-			for (final ResolvedModuleName name : toBuildList)
-			{
-				BuildModule.build(event, manager, name);
-			}
+			final Iterator<ResolvedModuleName> toBuildList =
+				dialog.getChosenElements().iterator();
+			onSuccess(toBuildList, manager, event);
+		}
+	}
+
+	/**
+	 *
+	 * @param toBuildList
+	 * @param manager
+	 * @param event
+	 */
+	private void onSuccess (
+		final @NotNull Iterator<ResolvedModuleName> toBuildList,
+		final @NotNull ProgressManager manager,
+		final @NotNull AnActionEvent event)
+	{
+		if (toBuildList.hasNext())
+		{
+			BuildModule.build(
+				event,
+				manager,
+				toBuildList.next(),
+				() -> onSuccess(
+					toBuildList, manager, event));
 		}
 	}
 

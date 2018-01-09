@@ -2,6 +2,7 @@ package org.availlang.plugin.parser;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiParser;
+import com.intellij.psi.impl.source.tree.java.PsiEmptyExpressionImpl;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,6 +17,8 @@ public class AvailParser implements PsiParser
 	public @NotNull ASTNode parse (
 		@NotNull final IElementType root, @NotNull final PsiBuilder builder)
 	{
-		return builder.getTreeBuilt();
+		// TODO build me for real.
+//		return builder.getTreeBuilt();
+		return new PsiEmptyExpressionImpl();
 	}
 }

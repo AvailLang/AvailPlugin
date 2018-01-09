@@ -92,8 +92,9 @@
       submenu; for popup="false", actions are displayed as a section of the
       same menu delimited by separators. -->
     <group id="BuildRootGroup" class="org.availlang.plugin.actions.groups.BuildRootGroup" popup="true"
-           text="Build Root" description="Build Avail roots">
-      <add-to-group group-id="ProjectViewPopupMenuRunGroup" anchor="last"/>
+           text="Avail Roots" description="Build Avail roots">
+      <add-to-group group-id="BuildMenu" anchor="last"/>
+      <add-to-group group-id="ProjectViewCompileGroup" anchor="last"/>
     </group>
     <!--<action id="org.availlang.plugin.build.TestRunAllTests"-->
             <!--class="org.availlang.plugin.build.TestRunAllTests" text="Do it!"-->
