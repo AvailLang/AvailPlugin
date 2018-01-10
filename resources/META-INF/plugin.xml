@@ -26,8 +26,8 @@
     <fileTypeFactory implementation="org.availlang.plugin.file.AvailFileTypeFactory"/>
     <fileTypeFactory implementation="org.availlang.plugin.file.AvailRepoFileTypeFactory"/>
     <!--<fileTypeFactory implementation="org.availlang.plugin.file.AvailDirectoryFileTypeFactory"/>-->
-
     <lang.parserDefinition language="Avail" implementationClass="org.availlang.plugin.parser.AvailParserDefinition"/>
+    <moduleType id="AVAIL_MODULE_TYPE" implementationClass="org.availlang.plugin.file.module.AvailModuleType"/>
   </extensions>
 
   <application-components>
@@ -85,7 +85,7 @@
            description="Interact with module">
       <add-to-group group-id="BuildMenu" anchor="last"/>
       <separator/>
-      <action id="org.availlang.plugin.build.BuildModuleEditor"
+      <action id="org.availlang.plugin.build.BuildModuleEditor2"
               class="org.availlang.plugin.build.BuildModule"
               text="Build Avail Module"
               description="The Avail build action for a module" />
@@ -107,7 +107,7 @@
            description="Interact with module">
       <add-to-group group-id="RunMenu" anchor="last"/>
       <separator/>
-      <action id="org.availlang.plugin.actions.RunEntryPointEditor"
+      <action id="org.availlang.plugin.actions.RunEntryPointEditor2"
               class="org.availlang.plugin.actions.RunEntryPoint"
               text="Run Entry Point"
               description="Run an Avail entry point" />
