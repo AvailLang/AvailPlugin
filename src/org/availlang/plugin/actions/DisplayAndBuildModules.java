@@ -1,3 +1,34 @@
+/*
+ * DisplayAndBuildModules.java
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.availlang.plugin.actions;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.utility.evaluation.Continuation0;
@@ -74,7 +105,12 @@ extends AvailAction
 				{
 					final Iterator<ResolvedModuleName> toBuildList =
 						dialog.getChosenElements().iterator();
-					onSuccess(toBuildList, project, manager, event);
+					BuildModule.buildModules(
+						false,
+						toBuildList,
+						manager,
+						event,
+						() -> done(project, manager, event));
 				});
 		}
 	}
@@ -91,7 +127,7 @@ extends AvailAction
 	 *        The {@code Continuation0} to run at the conclusion of this
 	 *        method.
 	 */
-	protected void firstThen (
+	public void firstThen (
 		final @NotNull Project project,
 		final @NotNull ResolvedModuleNameOptionDialog dialog,
 		final @NotNull Continuation0 next)
@@ -111,51 +147,6 @@ extends AvailAction
 			dialog.setSingleSelect();
 		}
 		return dialog;
-	}
-
-	/**
-	 * The action to perform upon successful completion of {@linkplain
-	 * BuildModule#build(AnActionEvent, ProgressManager, ResolvedModuleName)
-	 * building a module}.
-	 *
-	 * @param toBuildList
-	 *        The {@link Iterator} of {@link ResolvedModuleName}s to build.
-	 * @param project
-	 *        The {@linkplain Project}.
-	 * @param manager
-	 *        The {@link ProgressManager}.
-	 * @param event
-	 *        The {@link AnActionEvent} that triggered the {@link
-	 *        DisplayAndBuildModules}.
-	 */
-	private void onSuccess (
-		final @NotNull Iterator<ResolvedModuleName> toBuildList,
-		final @NotNull Project project,
-		final @NotNull ProgressManager manager,
-		final @NotNull AnActionEvent event)
-	{
-		if (toBuildList.hasNext())
-		{
-			final ResolvedModuleName name = toBuildList.next();
-			final AvailComponent component = AvailComponent.getInstance();
-			if (component.builder().getLoadedModule(name) == null)
-			{
-				BuildModule.build(
-					event,
-					manager,
-					name,
-					() -> onSuccess(
-						toBuildList, project, manager, event));
-			}
-			else
-			{
-				onSuccess(toBuildList, project, manager, event);
-			}
-		}
-		else
-		{
-			done(project, manager, event);
-		}
 	}
 
 	/**

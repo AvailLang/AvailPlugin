@@ -1,5 +1,5 @@
 /*
- * AvailModuleBuilder.java
+ * PluginException.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,43 +29,68 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package org.availlang.plugin.file.module;
-import com.intellij.ide.util.projectWizard.ModuleBuilder;
-import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.ide.util.projectWizard.WizardContext;
-import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
+
+package org.availlang.plugin.exceptions;
+import org.availlang.plugin.ui.dialogs.MessageDialog;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A {@code AvailModuleBuilder} is an {@link ModuleBuilder} for {@link
- * AvailModuleType}s.
+ * A {@code PluginException} is the root {@link RuntimeException} that will be
+ * thrown by any plugin operation that should be able to be handled.
  *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * @author Richard A Arriaga &lt;rarriaga@safetyweb.org&gt;
  */
-public class AvailModuleBuilder extends ModuleBuilder
+public class AvailPluginException
+extends RuntimeException
 {
-	@Override
-	public void setupRootModel (final ModifiableRootModel modifiableRootModel)
+	/**
+	 * Construct a {@link AvailPluginException}.
+	 *
+	 * @param message
+	 *        The {@code String} message that can be added to a log and placed
+	 *        in a popup {@link MessageDialog}.
+	 */
+	public AvailPluginException (final @NotNull String message)
 	{
-		// TODO what's all this then?
+		super(message);
 	}
 
-	@Override
-	public ModuleType getModuleType ()
+	/**
+	 * Construct a {@link AvailPluginException}.
+	 *
+	 * @param message
+	 *        The {@code String} message that can be added to a log and placed
+	 *        in a popup {@link MessageDialog}.
+	 * @param cause
+	 *        The {@link Throwable} that caused this {@code
+	 *        ConfigurationException}.
+	 */
+	public AvailPluginException (
+		final @NotNull String message,
+		final @NotNull Throwable cause)
 	{
-		return AvailModuleType.getInstance();
+		super(message, cause);
 	}
 
-	@Override
-	public ModuleWizardStep[] createWizardSteps (
-		final @NotNull WizardContext wizardContext,
-		final @NotNull ModulesProvider modulesProvider)
+	/**
+	 * Answer a {@link MessageDialog} that explains this {@link
+	 * AvailPluginException} to the user.
+	 *
+	 * @return A {@code MessageDialog}.
+	 */
+	public @NotNull MessageDialog errorDialog ()
 	{
-		final ModuleWizardStep[] steps = new AvailRootsStep[1];
-		steps[0]= new AvailRootsStep();
-		return steps;
+		return new MessageDialog("Avail Plugin Error", getMessage());
+	}
+
+	/**
+	 * Answer a {@link MessageDialog} that explains an {@link
+	 * AvailPluginException} to the user.
+	 *
+	 * @return A {@code MessageDialog}.
+	 */
+	public static @NotNull MessageDialog dialog (final @NotNull String message)
+	{
+		return new AvailPluginException(message).errorDialog();
 	}
 }

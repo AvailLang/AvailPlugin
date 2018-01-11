@@ -1,3 +1,34 @@
+/*
+ * AvailComponent.java
+ * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.availlang.plugin.core;
 import com.avail.AvailRuntime;
 import com.avail.builder.*;
@@ -11,11 +42,18 @@ import com.avail.persistence.IndexedRepositoryManager.ModuleArchive;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey;
 import com.avail.utility.Mutable;
+import com.avail.utility.evaluation.Continuation0;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ApplicationComponent;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.ui.treeStructure.Tree;
+import org.availlang.plugin.actions.events.DummyEvent;
+import org.availlang.plugin.build.BuildModule;
+import org.availlang.plugin.build.ClearRepo;
 import org.availlang.plugin.core.utility.ModuleEntryPoints;
+import org.availlang.plugin.exceptions.AvailPluginException;
 import org.availlang.plugin.psi.AvailPsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +72,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.avail.utility.Nulls.stripNull;
 
@@ -59,6 +98,135 @@ implements ApplicationComponent
 			application.getComponent(AvailComponent.class);
 		assert component != null;
 		return component;
+	}
+
+	/**
+	 * The map of {@link ModuleRoot} {@linkplain ModuleRoot#name name} to the
+	 * {@code ModuleRoot} for the {@code ModuleRoots} being developed in the
+	 * active project.
+	 */
+	private @NotNull Map<String, ModuleRoot> moduleRootMap =
+		new ConcurrentHashMap<>();
+
+	/**
+	 * Clear the provided {@link ModuleRoot}'s {@link IndexedRepositoryManager}.
+	 *
+	 * @param rootName
+	 *        The name of the {@code ModuleRoot} to clear.
+	 * @param event
+	 *        The {@link AnActionEvent} that prompted this clearing.
+	 * @param onSuccess
+	 *        The {@link Continuation0} to run after clearing the repository.
+	 */
+	public void clearRepository (
+		final @NotNull String rootName,
+		final @NotNull AnActionEvent event,
+		final @NotNull Continuation0 onSuccess)
+	{
+		final ModuleRoot root = moduleRootMap.getOrDefault(rootName, null);
+		if (root == null)
+		{
+			AvailPluginException.dialog(String.format(
+				"%s is not a registered Avail root so it cannot be cleared!",
+				rootName));
+		}
+		else
+		{
+			ClearRepo.clearRepository(root, event, onSuccess);
+		}
+	}
+
+	/**
+	 * Clear the provided {@link ModuleRoot}'s {@link IndexedRepositoryManager}.
+	 *
+	 * @param event
+	 *        The {@link AnActionEvent} that prompted this clearing.
+	 * @param onSuccess
+	 *        The {@link Continuation0} to run after clearing the repository.
+	 */
+	public void clearAllRootRepositories (
+		final @NotNull AnActionEvent event,
+		final @NotNull Continuation0 onSuccess)
+	{
+		final Iterator<ModuleRoot> roots = moduleRootMap.values().iterator();
+		if (!roots.hasNext())
+		{
+			AvailPluginException.dialog(
+				"There are no registered Avail roots, so there is nothing to "
+					+ "clear!");
+		}
+		else
+		{
+			clearNextRepository(roots, event, onSuccess);
+		}
+	}
+
+	/**
+	 * The map of {@link ModuleRoot} {@linkplain ModuleRoot#name name} to the
+	 * {@code ModuleRoot} for the Avail SDK {@code ModuleRoots}.
+	 */
+	private @NotNull Map<String, ModuleRoot> sdkRootMap =
+		new ConcurrentHashMap<>();
+
+	private void initializeSDK ()
+	{
+		if (sdkRootMap.isEmpty())
+		{
+			return;
+		}
+		buildAllRoots(
+			sdkRootMap.values().iterator(),
+			new DummyEvent());
+	}
+
+	private void buildAllRoots (
+		final @NotNull Iterator<ModuleRoot> roots,
+		final @NotNull AnActionEvent event)
+	{
+		if (!roots.hasNext())
+		{
+			return;
+		}
+		final ModuleRoot root = roots.next();
+		BuildModule.buildModules(
+			true,
+			topLevelResolvedNames(root).iterator(),
+			ProgressManager.getInstance(),
+			event,
+			() -> buildAllRoots(roots, event));
+	}
+
+	/**
+	 * Clear the {@link Iterator#next() next} {@link ModuleRoot} in the provided
+	 * {@link Iterator}. If the {@linkplain Iterator#hasNext() is empty}, run
+	 * the provided {@link Continuation0}.
+	 *
+	 * @param roots
+	 *        An {@link Iterator} containing the roots to clear.
+	 * @param event
+	 *        The {@link AnActionEvent} that prompted this clearing.
+	 * @param onSuccess
+	 *        The {@code Continuation0} to run after clearing the repository.
+	 */
+	private void clearNextRepository (
+		final @NotNull Iterator<ModuleRoot> roots,
+		final @NotNull AnActionEvent event,
+		final @NotNull Continuation0 onSuccess)
+	{
+		ClearRepo.clearRepository(
+			roots.next(),
+			event,
+			() ->
+			{
+				if (roots.hasNext())
+				{
+					clearNextRepository(roots, event, onSuccess);
+				}
+				else
+				{
+					onSuccess.value();
+				}
+			});
 	}
 
 	/**
@@ -245,8 +413,8 @@ implements ApplicationComponent
 		final @NotNull ModuleRoot moduleRoot)
 	{
 		final List<ResolvedModuleName> names = new ArrayList<>();
-		final File sourceDirectory = moduleRoot.sourceDirectory();
-		for (final File fileEntry : sourceDirectory.listFiles()) {
+		final File sourceDirectory = stripNull(moduleRoot.sourceDirectory());
+		for (final File fileEntry : stripNull(sourceDirectory.listFiles())) {
 			final String fullyQualifiedName = String.format(
 				"/%s/%s",
 				moduleRoot.name(),
@@ -273,7 +441,7 @@ implements ApplicationComponent
 	 */
 	public void refresh ()
 	{
-		resolver.clearCache();
+		resolver().clearCache();
 		final TreeNode modules = newModuleTree();
 		moduleTree.setModel(new DefaultTreeModel(modules));
 //		for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
@@ -292,7 +460,7 @@ implements ApplicationComponent
 	 */
 	private @NotNull TreeNode newModuleTree ()
 	{
-		final ModuleRoots roots = resolver.moduleRoots();
+		final ModuleRoots roots = resolver().moduleRoots();
 		final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode(
 			"(packages hidden root)");
 		// Put the invisible root onto the work stack.
@@ -336,7 +504,7 @@ implements ApplicationComponent
 	private void refreshModuleEntryPoints ()
 	{
 		rootEntryPointMap.clear();
-		builder.traceDirectories(
+		builder().traceDirectories(
 			(resolvedName, moduleVersion) ->
 			{
 				assert resolvedName != null;
@@ -360,7 +528,7 @@ implements ApplicationComponent
 	 * root.
 	 *
 	 * @param stack
-	 *        The stack on which to place Avail roots and packages.
+	 *        The stack on which to place Avail rootDirs and packages.
 	 * @param moduleRoot
 	 *        The {@link ModuleRoot} within which to scan recursively.
 	 * @return A {@code FileVisitor}.
@@ -425,7 +593,7 @@ implements ApplicationComponent
 					final ResolvedModuleName resolved;
 					try
 					{
-						resolved = resolver.resolve(moduleName, null);
+						resolved = resolver().resolve(moduleName, null);
 					}
 					catch (final UnresolvedDependencyException e)
 					{
@@ -434,7 +602,7 @@ implements ApplicationComponent
 						return FileVisitResult.SKIP_SUBTREE;
 					}
 					final ModuleOrPackageNode node = new ModuleOrPackageNode(
-						builder, moduleName, resolved, true);
+						builder(), moduleName, resolved, true);
 					parentNode.add(node);
 					if (resolved.isRename())
 					{
@@ -504,10 +672,10 @@ implements ApplicationComponent
 					try
 					{
 						final ResolvedModuleName resolved =
-							resolver.resolve(moduleName, null);
+							resolver().resolve(moduleName, null);
 						final ModuleOrPackageNode node =
 							new ModuleOrPackageNode(
-								builder, moduleName, resolved, false);
+								builder(), moduleName, resolved, false);
 						if (resolved.isRename() || !resolved.isPackage())
 						{
 							parentNode.add(node);
@@ -583,7 +751,7 @@ implements ApplicationComponent
 			final ModuleNameResolver resolver = renameParser.parse();
 			this.resolver = resolver;
 			this.runtime = new AvailRuntime(resolver);
-			this.builder = new AvailBuilder(runtime);
+			this.builder = new AvailBuilder(runtime());
 		}
 		catch (final Exception e)
 		{

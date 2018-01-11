@@ -1,14 +1,17 @@
 <!--
   ~ configuration.dtd
-  ~ Copyright (c) 2016-2017, My Coverage Plan, Inc.
+  ~ Copyright © 1993-2018, The Avail Foundation, LLC.
   ~ All rights reserved.
   -->
 
-        <!--
-        @author Richard Arriaga <rich@availlang.org>
-          -->
+<!--
+@author Richard Arriaga <rich@availlang.org>
+  -->
 
-        <!ELEMENT avail (roots)>
-            <!ELEMENT roots (root,repo)+>
-                <!ELEMENT root (#PCDATA)>
-                <!ELEMENT repo (#PCDATA)>
+<!ELEMENT avail (roots,sdks)>
+    <!ELEMENT roots (root)*>
+    <!ELEMENT sdks (sdk)*>
+        <!ELEMENT root (repo,src-dir)>
+        <!ELEMENT sdk (repo,src-dir)>
+            <!ELEMENT repo (#PCDATA)>
+            <!ELEMENT src-dir (#PCDATA)>

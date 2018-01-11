@@ -1,5 +1,5 @@
 /*
- * AvailModuleBuilder.java
+ * AvailPluginState.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,43 +29,27 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package org.availlang.plugin.file.module;
-import com.intellij.ide.util.projectWizard.ModuleBuilder;
-import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.ide.util.projectWizard.WizardContext;
-import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
+package org.availlang.plugin.configuration;
+import com.avail.utility.configuration.XMLConfiguratorState;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A {@code AvailModuleBuilder} is an {@link ModuleBuilder} for {@link
- * AvailModuleType}s.
+ * A {@code State} encapsulates the state of a {@link AvailPluginConfiguration} for the
+ * Avail plugin.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class AvailModuleBuilder extends ModuleBuilder
+public class AvailPluginState
+extends XMLConfiguratorState<AvailPluginConfiguration, AvailPluginElement, AvailPluginState>
 {
-	@Override
-	public void setupRootModel (final ModifiableRootModel modifiableRootModel)
+	/**
+	 * Construct a {@link AvailPluginState}.
+	 *
+	 * @param configuration
+	 *        The {@link AvailPluginConfiguration}.
+	 */
+	public AvailPluginState (final @NotNull AvailPluginConfiguration configuration)
 	{
-		// TODO what's all this then?
-	}
-
-	@Override
-	public ModuleType getModuleType ()
-	{
-		return AvailModuleType.getInstance();
-	}
-
-	@Override
-	public ModuleWizardStep[] createWizardSteps (
-		final @NotNull WizardContext wizardContext,
-		final @NotNull ModulesProvider modulesProvider)
-	{
-		final ModuleWizardStep[] steps = new AvailRootsStep[1];
-		steps[0]= new AvailRootsStep();
-		return steps;
+		super(configuration);
 	}
 }

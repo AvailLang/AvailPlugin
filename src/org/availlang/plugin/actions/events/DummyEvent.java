@@ -1,5 +1,5 @@
 /*
- * AvailModuleBuilder.java
+ * DummyEvent.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,43 +29,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package org.availlang.plugin.file.module;
-import com.intellij.ide.util.projectWizard.ModuleBuilder;
-import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.ide.util.projectWizard.WizardContext;
-import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
-import org.jetbrains.annotations.NotNull;
+
+
+package org.availlang.plugin.actions.events;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
+import org.availlang.plugin.ui.DummyComponent;
 
 /**
- * A {@code AvailModuleBuilder} is an {@link ModuleBuilder} for {@link
- * AvailModuleType}s.
+ * A {@code DummyEvent} is a placeholder {@link AnActionEvent} used to pass as
+ * an argument into methods that expect an event, but there really is no event.
  *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * <p>
+ * This is helpful for the reuse of code through plugin initialization.
+ * </p>
+ *
+ * @author Richard A Arriaga &lt;rarriaga@safetyweb.org&gt;
  */
-public class AvailModuleBuilder extends ModuleBuilder
+public class DummyEvent
+extends AnActionEvent
 {
-	@Override
-	public void setupRootModel (final ModifiableRootModel modifiableRootModel)
+	/**
+	 * Construct a {@link DummyEvent}.
+	 */
+	public DummyEvent ()
 	{
-		// TODO what's all this then?
-	}
-
-	@Override
-	public ModuleType getModuleType ()
-	{
-		return AvailModuleType.getInstance();
-	}
-
-	@Override
-	public ModuleWizardStep[] createWizardSteps (
-		final @NotNull WizardContext wizardContext,
-		final @NotNull ModulesProvider modulesProvider)
-	{
-		final ModuleWizardStep[] steps = new AvailRootsStep[1];
-		steps[0]= new AvailRootsStep();
-		return steps;
+		super(
+			null,
+			DataManager.getInstance().getDataContext(new DummyComponent()),
+			"",
+			new Presentation(),
+			ActionManager.getInstance(),
+			0);
 	}
 }
