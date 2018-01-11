@@ -54,6 +54,13 @@ extends ModuleWizardStep
 
 	/**
 	 * // TODO not really sure what this bit is for.
+	 * Takes root relative paths of module names and map them to other module
+	 * names at other locations? It gives alternative short names for stuff
+	 * (aliases).
+	 *
+	 * For example if you have two implementation of Sockets, a super optimized
+	 * and another that is for super debug. Changing the renames can make it
+	 * point to the alias.
 	 */
 	private static final @NotNull  SimpleTableModel renamesTableModel =
 		new SimpleTableModel("module", "replacement path");

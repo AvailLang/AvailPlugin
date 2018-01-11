@@ -1,0 +1,14 @@
+<!--
+  ~ configuration.dtd
+  ~ Copyright (c) 2016-2017, My Coverage Plan, Inc.
+  ~ All rights reserved.
+  -->
+
+        <!--
+        @author Richard Arriaga <rich@availlang.org>
+          -->
+
+        <!ELEMENT avail (roots)>
+            <!ELEMENT roots (root,repo)+>
+                <!ELEMENT root (#PCDATA)>
+                <!ELEMENT repo (#PCDATA)>
