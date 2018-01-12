@@ -87,7 +87,8 @@ extends PsiFileBase
 		if (resolvedModuleName == null)
 		{
 			final String path = getVirtualFile().getPath();
-			final AvailComponent component = AvailComponent.getInstance();
+			final AvailComponent component =
+				AvailComponent.getInstance(getProject());
 			final ModuleNameResolver resolver =
 				component.resolver();
 			final ModuleRoots roots = component.moduleRoots();

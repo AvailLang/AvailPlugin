@@ -30,7 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package org.availlang.plugin.configuration;
+import com.avail.builder.ModuleRoot;
+import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.configuration.XMLConfiguratorState;
+import org.availlang.plugin.configuration.AvailPluginConfiguration.AvailRename;
+import org.availlang.plugin.configuration.AvailPluginConfiguration.AvailRoot;
+import org.availlang.plugin.exceptions.ConfigurationException;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -43,12 +48,91 @@ public class AvailPluginState
 extends XMLConfiguratorState<AvailPluginConfiguration, AvailPluginElement, AvailPluginState>
 {
 	/**
+	 * The corresponding {@link ModuleRoot#name()}.
+	 */
+	public @NotNull String rootName = "";
+
+	/**
+	 * The {@link ModuleRoot}'s {@link IndexedRepositoryManager} location.
+	 */
+	public @NotNull String rootRepository = "";
+
+	/**
+	 * The {@link ModuleRoot#sourceDirectory}'s location or {@code null}.
+	 */
+	public @NotNull String sourceDirectory = "";
+
+	/**
+	 * The module name to be replaced (the key).
+	 */
+	public @NotNull String source = "";
+
+	/**
+	 * The module name replacement.
+	 */
+	public @NotNull String target = "";
+
+	/**
+	 * Answer an {@link AvailRoot} then reset {@link #rootName}, {@link
+	 * #rootRepository}, and {@link #sourceDirectory}.
+	 *
+	 * @return An {@code AvailRoot}.
+	 */
+	public @NotNull AvailRoot availRoot(final boolean isSDK)
+	{
+		if (rootName.isEmpty())
+		{
+			throw new ConfigurationException(
+				"Avail configuration file missing root name.");
+		}
+		if (isSDK && rootRepository.isEmpty())
+		{
+			throw new ConfigurationException(
+				"Avail configuration file missing repository path.");
+		}
+		final AvailRoot root = new AvailRoot(
+			configuration(),
+			isSDK,
+			rootName,
+			rootRepository,
+			sourceDirectory.isEmpty() ? null : sourceDirectory);
+		rootName = "";
+		rootRepository = "";
+		sourceDirectory = "";
+		return root;
+	}
+
+	/**
+	 * Answer an {@link AvailRename} then reset {@link #source} and {@link
+	 * #target}.
+	 *
+	 * @return An {@code AvailRename}.
+	 */
+	public @NotNull AvailRename availRename()
+	{
+		if (source.isEmpty())
+		{
+			throw new ConfigurationException(
+				"Avail configuration file missing rename source.");
+		}
+		if (target.isEmpty())
+		{
+			throw new ConfigurationException(
+				"Avail configuration file missing rename target.");
+		}
+		final AvailRename rename = new AvailRename(source, target);
+		source = "";
+		target = "";
+		return rename;
+	}
+
+	/**
 	 * Construct a {@link AvailPluginState}.
 	 *
 	 * @param configuration
 	 *        The {@link AvailPluginConfiguration}.
 	 */
-	public AvailPluginState (final @NotNull AvailPluginConfiguration configuration)
+	AvailPluginState (final @NotNull AvailPluginConfiguration configuration)
 	{
 		super(configuration);
 	}

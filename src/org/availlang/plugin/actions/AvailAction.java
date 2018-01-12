@@ -51,6 +51,11 @@ public abstract class AvailAction
 extends AnAction
 {
 	/**
+	 * The {@link AnActionEvent} that triggered this {@link AvailAction}.
+	 */
+	private @Nullable AnActionEvent event;
+
+	/**
 	 * Answer the {@link Icon} associated with this action.
 	 *
 	 * @return An {@code Icon} if available or {@code null}.
@@ -137,11 +142,14 @@ extends AnAction
 	/**
 	 * Answer whether or not the {@link AvailAction} should be visible.
 	 *
+	 * @param event
+	 *        The {@link AnActionEvent} that triggered this {@link AvailAction}.
 	 * @param psiFile
 	 *        The {@link AvailPsiFile}.
 	 * @return {@code true} if it should be visible; {@code false} otherwise.
 	 */
 	protected boolean customVisibilityCheck (
+		final @NotNull AnActionEvent event,
 		final @Nullable AvailPsiFile psiFile)
 	{
 		return true;
@@ -150,11 +158,12 @@ extends AnAction
 	@Override
 	public void update (final AnActionEvent event)
 	{
+		this.event = event;
 		final Project project = event.getProject();
 		if (project != null)
 		{
 			final AvailPsiFile psiFile = psiFile(event);
-			if (customVisibilityCheck(psiFile))
+			if (customVisibilityCheck(event, psiFile))
 			{
 				final String customMenuItem = customMenuItem(psiFile);
 				if (!customMenuItem.isEmpty())

@@ -34,6 +34,7 @@ import com.avail.builder.ModuleRoot;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.linking.EntryPoint;
+import com.avail.utility.Nulls;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -58,7 +59,8 @@ extends ActionGroup
 	@Override
 	public @NotNull AnAction[] getChildren (final @Nullable AnActionEvent e)
 	{
-		final AvailComponent component = AvailComponent.getInstance();
+		final AvailComponent component =
+			AvailComponent.getInstance(Nulls.stripNull(e.getProject()));
 		component.refresh();
 		final ModuleRoots roots =
 			component.moduleRoots();

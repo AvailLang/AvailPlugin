@@ -85,7 +85,7 @@ extends ChooseElementsDialog<String>
 	{
 		super(
 			project,
-			calculateEntryPoints(),
+			calculateEntryPoints(project),
 			"Run Entry Point",
 			"Run Avail Entry Point",
 			true);
@@ -118,10 +118,12 @@ extends ChooseElementsDialog<String>
 	 *
 	 * @return A {@code String} {@link List} of available entry points.
 	 */
-	private static List<String> calculateEntryPoints ()
+	private static List<String> calculateEntryPoints (
+		final @NotNull Project project)
 	{
 		final List<String> entryPoints = new ArrayList<>();
-		final AvailBuilder builder = AvailComponent.getInstance().builder();
+		final AvailBuilder builder =
+			AvailComponent.getInstance(project).builder();
 		for (final LoadedModule loadedModule : builder.loadedModulesCopy())
 		{
 			if (!loadedModule.entryPoints().isEmpty())

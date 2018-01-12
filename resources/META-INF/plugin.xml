@@ -30,12 +30,15 @@
     <moduleType id="AVAIL_MODULE_TYPE" implementationClass="org.availlang.plugin.file.module.AvailModuleType"/>
   </extensions>
 
-  <application-components>
+  <project-components>
     <!--This is where we add the ApplicationComponents from core-->
+    <component>
+      <implementation-class>org.availlang.plugin.configuration.AvailPluginConfiguration</implementation-class>
+    </component>
     <component>
       <implementation-class>org.availlang.plugin.core.AvailComponent</implementation-class>
     </component>
-  </application-components>
+  </project-components>
 
   <actions>
     <!--<action id="org.availlang.plugin.build.BuildModule"-->

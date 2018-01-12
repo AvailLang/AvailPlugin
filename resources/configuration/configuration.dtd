@@ -8,10 +8,16 @@
 @author Richard Arriaga <rich@availlang.org>
   -->
 
-<!ELEMENT avail (roots,sdks)>
+<!ELEMENT avail (version,roots,sdks)>
+    <!ELEMENT version (#PCDATA)>
     <!ELEMENT roots (root)*>
     <!ELEMENT sdks (sdk)*>
-        <!ELEMENT root (repo,src-dir)>
-        <!ELEMENT sdk (repo,src-dir)>
+        <!ELEMENT root (name,repo,src-dir)>
+        <!ELEMENT sdk (name,repo,src-dir)>
+            <!ELEMENT name (#PCDATA)>
             <!ELEMENT repo (#PCDATA)>
             <!ELEMENT src-dir (#PCDATA)>
+    <!ELEMENT renames (sdk)*>
+        <!ELEMENT rename (source,target)>
+        <!ELEMENT source (#PCDATA)>
+        <!ELEMENT target (#PCDATA)>

@@ -63,7 +63,8 @@ extends DisplayAndBuildModules
 		final @NotNull ProgressManager manager,
 		final @NotNull AnActionEvent event)
 	{
-		final AvailBuilder builder = AvailComponent.getInstance().builder();
+		final AvailBuilder builder =
+			AvailComponent.getInstance(project).builder();
 		RunEntryPoint.
 			runEntryPoint(event, manager, builder, entryPointCommand);
 	}
@@ -93,7 +94,7 @@ extends DisplayAndBuildModules
 	{
 		final ResolvedModuleName name = dialog.getSelection();
 		assert name != null;
-		final AvailComponent component = AvailComponent.getInstance();
+		final AvailComponent component = AvailComponent.getInstance(project);
 		final List<String> entryPoints =
 			component.entryPoints(name);
 		if (entryPoints.isEmpty())

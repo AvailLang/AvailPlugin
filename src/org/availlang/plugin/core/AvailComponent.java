@@ -44,16 +44,18 @@ import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey;
 import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation0;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ApplicationComponent;
+import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.Tree;
 import org.availlang.plugin.actions.events.DummyEvent;
 import org.availlang.plugin.build.BuildModule;
 import org.availlang.plugin.build.ClearRepo;
+import org.availlang.plugin.configuration.AvailPluginConfiguration;
 import org.availlang.plugin.core.utility.ModuleEntryPoints;
 import org.availlang.plugin.exceptions.AvailPluginException;
+import org.availlang.plugin.exceptions.ConfigurationException;
 import org.availlang.plugin.psi.AvailPsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,8 +64,8 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -84,21 +86,43 @@ import static com.avail.utility.Nulls.stripNull;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 public class AvailComponent
-implements ApplicationComponent
+implements ProjectComponent
 {
+	/**
+	 * The {@link Project} holding onto this {@link AvailComponent}.
+	 */
+	private final @NotNull Project project;
+
+	/**
+	 * Answer the {@link Project} holding onto this {@link AvailComponent}.
+	 *
+	 * @return A {@code Project}.
+	 */
+	public @NotNull Project getProject ()
+	{
+		return project;
+	}
+
 	/**
 	 * Provide the sole instance of {@link AvailComponent}.
 	 *
+	 * @param project
+	 *        The {@link Project} the {@code AvailComponent} is being asked for.
 	 * @return The single {@code AvailComponent}.
 	 */
-	public static @NotNull AvailComponent getInstance ()
+	public static @NotNull AvailComponent getInstance (
+		final @NotNull Project project)
 	{
-		final Application application = ApplicationManager.getApplication();
 		final AvailComponent component =
-			application.getComponent(AvailComponent.class);
+			project.getComponent(AvailComponent.class);
 		assert component != null;
 		return component;
 	}
+
+	/**
+	 * The {@link AvailPluginConfiguration} for this {@link Project}.
+	 */
+	public final @NotNull AvailPluginConfiguration configuration;
 
 	/**
 	 * The map of {@link ModuleRoot} {@linkplain ModuleRoot#name name} to the
@@ -168,7 +192,10 @@ implements ApplicationComponent
 	private @NotNull Map<String, ModuleRoot> sdkRootMap =
 		new ConcurrentHashMap<>();
 
-	private void initializeSDK ()
+	/**
+	 * Initialize the Avail SDKs.
+	 */
+	private void initializeAvailSDKs ()
 	{
 		if (sdkRootMap.isEmpty())
 		{
@@ -335,8 +362,7 @@ implements ApplicationComponent
 	public @NotNull List<String> availableEntryPoints ()
 	{
 		final List<String> entryPoints = new ArrayList<>();
-		final AvailBuilder builder = AvailComponent.getInstance().builder();
-		for (final LoadedModule loadedModule : builder.loadedModulesCopy())
+		for (final LoadedModule loadedModule : builder().loadedModulesCopy())
 		{
 			if (!loadedModule.entryPoints().isEmpty())
 			{
@@ -353,7 +379,7 @@ implements ApplicationComponent
 	 */
 	public @NotNull List<LoadedModule> loadedModules ()
 	{
-		return AvailComponent.getInstance().builder().loadedModulesCopy();
+		return builder().loadedModulesCopy();
 	}
 
 	/**
@@ -425,8 +451,7 @@ implements ApplicationComponent
 				new ModuleName(fullyQualifiedName);
 			try
 			{
-				names.add(AvailComponent.getInstance().resolver()
-					.resolve(moduleName, null));
+				names.add(resolver().resolve(moduleName, null));
 			}
 			catch (final UnresolvedDependencyException e)
 			{
@@ -724,39 +749,30 @@ implements ApplicationComponent
 	}
 
 	@Override
-	public void initComponent ()
+	public void projectOpened ()
 	{
 		try
 		{
-			final String rootsString = System.getenv("AVAIL_ROOTS");
-			final ModuleRoots roots =
-				new ModuleRoots(rootsString == null ? "" : rootsString);
-
-			final String renames = System.getenv("AVAIL_RENAMES");
-			final Reader reader;
-			if (renames == null)
-			{
-				// Load the renames from preferences further down.
-				reader = new StringReader("");
-			}
-			else
-			{
-				// Load the renames from the file specified on the command line...
-				final File renamesFile = new File(renames);
-				reader = new BufferedReader(new InputStreamReader(
-					new FileInputStream(renamesFile), StandardCharsets.UTF_8));
-			}
-			final RenamesFileParser renameParser = new RenamesFileParser(
-				reader, roots);
-			final ModuleNameResolver resolver = renameParser.parse();
-			this.resolver = resolver;
+			final ModuleRoots roots = new ModuleRoots("");
+			configuration.sdkMap.forEach((name, sdk) ->
+				roots.addRoot(sdk.moduleRoot()));
+			configuration.rootMap.forEach((name, root) ->
+				roots.addRoot(root.moduleRoot()));
+			this.resolver = new ModuleNameResolver(roots);
+			configuration.renameMap.forEach((source, rename) ->
+				this.resolver.addRenameRule(source, rename.target));
 			this.runtime = new AvailRuntime(resolver);
 			this.builder = new AvailBuilder(runtime());
+			initializeAvailSDKs();
+		}
+		catch (final @NotNull ConfigurationException ex)
+		{
+			ex.errorDialog();
 		}
 		catch (final Exception e)
 		{
-			throw new RuntimeException(
-				"AvailComponent failed to initialize", e);
+			new AvailPluginException("AvailComponent failed to initialize", e)
+				.errorDialog();
 		}
 	}
 
@@ -764,5 +780,18 @@ implements ApplicationComponent
 	public @NotNull String getComponentName ()
 	{
 		return "Avail";
+	}
+
+	/**
+	 * Construct the {@link AvailComponent}.
+	 *
+	 * @param project
+	 *        The {@link Project} this {@link AvailComponent} is for.
+	 */
+	public AvailComponent (final @NotNull Project project)
+	{
+		this.project = project;
+		this.configuration =
+			project.getComponent(AvailPluginConfiguration.class);
 	}
 }

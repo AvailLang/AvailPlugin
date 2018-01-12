@@ -30,13 +30,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package org.availlang.plugin.file.module;
+import com.avail.utility.Nulls;
 import com.intellij.ide.util.projectWizard.ModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
+import org.availlang.plugin.file.module.wizard.AvailConfigurationStep;
+import org.availlang.plugin.file.module.wizard.AvailRenamesStep;
+import org.availlang.plugin.file.module.wizard.AvailRootStep;
+import org.availlang.plugin.file.module.wizard.AvailSdkStep;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -64,8 +69,13 @@ public class AvailModuleBuilder extends ModuleBuilder
 		final @NotNull WizardContext wizardContext,
 		final @NotNull ModulesProvider modulesProvider)
 	{
-		final ModuleWizardStep[] steps = new AvailRootsStep[1];
-		steps[0]= new AvailRootsStep();
+		final Project project = Nulls.stripNull(
+			wizardContext.getProject(),
+			"The Avail project wizard expects there to be a project!");
+		final ModuleWizardStep[] steps = new AvailConfigurationStep[3];
+		steps[0] = new AvailRootStep(project);
+		steps[1] = new AvailSdkStep(project);
+		steps[2] = new AvailRenamesStep(project);
 		return steps;
 	}
 }

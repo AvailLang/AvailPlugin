@@ -32,6 +32,7 @@
 package org.availlang.plugin.build;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ResolvedModuleName;
+import com.avail.utility.Nulls;
 import com.avail.utility.evaluation.Continuation0;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -39,7 +40,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task.Backgroundable;
 import com.intellij.openapi.progress.util.ProgressWindow;
-import com.intellij.openapi.project.Project;
 import org.availlang.plugin.actions.AvailAction;
 import org.availlang.plugin.actions.DisplayAndBuildModules;
 import org.availlang.plugin.core.AvailComponent;
@@ -106,7 +106,8 @@ extends AvailAction
 		if (toBuildList.hasNext())
 		{
 			final ResolvedModuleName name = toBuildList.next();
-			final AvailComponent component = AvailComponent.getInstance();
+			final AvailComponent component =
+				AvailComponent.getInstance(Nulls.stripNull(getEventProject(event)));
 			if (component.builder().getLoadedModule(name) == null)
 			{
 				BuildModule.build(
@@ -146,7 +147,8 @@ extends AvailAction
 		final @NotNull Continuation0 onSuccess)
 	{
 		final AvailBuilder builder =
-			AvailComponent.getInstance().builder();
+			AvailComponent.getInstance(
+				Nulls.stripNull(getEventProject(event))).builder();
 		final String label = loadingOnly
 			? String.format(
 				"Loading %s",
@@ -212,6 +214,7 @@ extends AvailAction
 
 	@Override
 	protected boolean customVisibilityCheck (
+		final @NotNull AnActionEvent event,
 		final @Nullable AvailPsiFile psiFile)
 	{
 		if (psiFile == null)
@@ -219,6 +222,7 @@ extends AvailAction
 			return false;
 		}
 		// It can only be visible if the file has not yet been loaded.
-		return !AvailComponent.getInstance().isLoaded(psiFile);
+		return !AvailComponent.getInstance(
+			Nulls.stripNull(getEventProject(event))).isLoaded(psiFile);
 	}
 }

@@ -33,6 +33,8 @@ package org.availlang.plugin.configuration;
 import com.avail.builder.ModuleRoot;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.configuration.XMLElement;
+import org.availlang.plugin.configuration.AvailPluginConfiguration.AvailRename;
+import org.availlang.plugin.configuration.AvailPluginConfiguration.AvailRoot;
 import org.availlang.plugin.configuration.AvailPluginConfiguration.ConfigurationXMLSource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,7 +76,46 @@ implements XMLElement<AvailPluginConfiguration, AvailPluginElement, AvailPluginS
 		@Override
 		public @NotNull List<AvailPluginElement> allowedChildren ()
 		{
-			return Arrays.asList(ROOTS, SDKS);
+			return Arrays.asList(VERSION, ROOTS, SDKS);
+		}
+	},
+
+	/**
+	 * The version of the Avail plugin.
+	 */
+	VERSION
+	{
+		@Override
+		public Set<AvailPluginElement> allowedParents ()
+		{
+			return Collections.singleton(AVAIL);
+		}
+
+		@Override
+		public void startElement (
+			final AvailPluginState state,
+			final Attributes attributes)
+		{
+			state.startAccumulator();
+		}
+
+		@Override
+		public void endElement (final AvailPluginState state)
+		{
+			state.stopAccumulator();
+			state.configuration().configurationVersion =
+				state.accumulatorContents();
+		}
+
+		@Override
+		@NotNull String xmlContent (
+			final @Nullable AvailPluginElement parent,
+			final @NotNull ConfigurationXMLSource source)
+		{
+			return new StringBuilder(elementOpenTag())
+				.append(AvailPluginConfiguration.version)
+				.append(elementCloseTag())
+				.toString();
 		}
 	},
 
@@ -87,14 +128,6 @@ implements XMLElement<AvailPluginConfiguration, AvailPluginElement, AvailPluginS
 		public Set<AvailPluginElement> allowedParents ()
 		{
 			return Collections.singleton(AVAIL);
-		}
-
-		@Override
-		public void endElement (final AvailPluginState state)
-		{
-			assert state.configuration().rootDirs.size() > 0;
-			assert state.configuration().repos.size()
-				== state.configuration().rootDirs.size();
 		}
 
 		@Override
@@ -116,24 +149,35 @@ implements XMLElement<AvailPluginConfiguration, AvailPluginElement, AvailPluginS
 		}
 
 		@Override
-		public void startElement (
-			final AvailPluginState state,
-			final Attributes attributes)
+		public @NotNull List<AvailPluginElement> allowedChildren ()
 		{
-			state.startAccumulator();
+			return Arrays.asList(NAME, REPO, SRC_DIR);
 		}
 
 		@Override
 		public void endElement (final AvailPluginState state)
 		{
-			state.stopAccumulator();
-			state.configuration().rootDirs.add(state.accumulatorContents());
+			final AvailRoot root = state.availRoot(false);
+			state.configuration().rootMap.put(root.name, root);
 		}
 
 		@Override
-		public @NotNull List<AvailPluginElement> allowedChildren ()
+		@NotNull String xmlContent (
+			final @Nullable AvailPluginElement parent,
+			final @NotNull ConfigurationXMLSource source)
+		throws ConfigurationException
 		{
-			return Arrays.asList(REPO, SRC_DIR);
+			final StringBuilder sb = new StringBuilder();
+			while (source.hasRoot())
+			{
+				sb.append(elementOpenTag());
+				for (final AvailPluginElement child : allowedChildren())
+				{
+					sb.append(child.xmlContent(this, source));
+				}
+				sb.append(elementCloseTag());
+			}
+			return sb.toString();
 		}
 	},
 
@@ -146,14 +190,6 @@ implements XMLElement<AvailPluginConfiguration, AvailPluginElement, AvailPluginS
 		public Set<AvailPluginElement> allowedParents ()
 		{
 			return Collections.singleton(AVAIL);
-		}
-
-		@Override
-		public void endElement (final AvailPluginState state)
-		{
-			assert state.configuration().sdkRootDirs.size() > 0;
-			assert state.configuration().sdkRootDirs.size()
-				== state.configuration().sdkRepos.size();
 		}
 
 		@Override
@@ -177,6 +213,50 @@ implements XMLElement<AvailPluginConfiguration, AvailPluginElement, AvailPluginS
 		}
 
 		@Override
+		public @NotNull List<AvailPluginElement> allowedChildren ()
+		{
+			return Arrays.asList(NAME, REPO, SRC_DIR);
+		}
+
+		@Override
+		public void endElement (final AvailPluginState state)
+		{
+			final AvailRoot root = state.availRoot(true);
+			state.configuration().sdkMap.put(root.name, root);
+		}
+
+		@Override
+		@NotNull String xmlContent (
+			final @Nullable AvailPluginElement parent,
+			final @NotNull ConfigurationXMLSource source)
+		throws ConfigurationException
+		{
+			final StringBuilder sb = new StringBuilder();
+			while (source.hasSdk())
+			{
+				sb.append(elementOpenTag());
+				for (final AvailPluginElement child : allowedChildren())
+				{
+					sb.append(child.xmlContent(this, source));
+				}
+				sb.append(elementCloseTag());
+			}
+			return sb.toString();
+		}
+	},
+
+	/**
+	 * The location of a {@link ModuleRoot#name()}.
+	 */
+	NAME
+	{
+		@Override
+		public Set<AvailPluginElement> allowedParents ()
+		{
+			return new HashSet<>(Arrays.asList(ROOT, SDK));
+		}
+
+		@Override
 		public void startElement (
 			final AvailPluginState state,
 			final Attributes attributes)
@@ -188,13 +268,20 @@ implements XMLElement<AvailPluginConfiguration, AvailPluginElement, AvailPluginS
 		public void endElement (final AvailPluginState state)
 		{
 			state.stopAccumulator();
-			state.configuration().rootDirs.add(state.accumulatorContents());
+			state.rootName = state.accumulatorContents();
 		}
 
 		@Override
-		public @NotNull List<AvailPluginElement> allowedChildren ()
+		@NotNull String xmlContent (
+			final @Nullable AvailPluginElement parent,
+			final @NotNull ConfigurationXMLSource source)
 		{
-			return Arrays.asList(REPO, SRC_DIR);
+			final boolean isSdk = parent == SDK;
+			final StringBuilder sb = new StringBuilder();
+			return sb.append(elementOpenTag())
+				.append(source.getCurrentRoot(isSdk).name)
+				.append(elementCloseTag())
+				.toString();
 		}
 	},
 
@@ -227,46 +314,20 @@ implements XMLElement<AvailPluginConfiguration, AvailPluginElement, AvailPluginS
 		public void endElement (final AvailPluginState state)
 		{
 			state.stopAccumulator();
-			final AvailPluginElement parent = state.parentElement();
-			if (parent == ROOT)
-			{
-				state.configuration().rootDirs.add(state.accumulatorContents());
-			}
-			else if (parent == SDK)
-			{
-				state.configuration().sdkRootDirs.add(
-					state.accumulatorContents());
-			}
+			state.sourceDirectory = state.accumulatorContents();
 		}
 
 		@Override
 		@NotNull String xmlContent (
 			final @Nullable AvailPluginElement parent,
 			final @NotNull ConfigurationXMLSource source)
-		throws ConfigurationException
 		{
-			assert parent != null;
-			if (parent == ROOT)
-			{
-				final String value =
-					source.rootDirs.hasNext()
-						? source.rootDirs.next()
-						: "";
-				return encapsulateXMLContent(parent, value);
-			}
-			else if (parent == SDK)
-			{
-				final String value =
-					source.sdkRootDirs.hasNext()
-						? source.sdkRootDirs.next()
-						: "";
-				return encapsulateXMLContent(parent, value);
-			}
-			throw new ConfigurationException(
-				String.format(
-					"%s is not a valid parent for %s",
-					parent.name(),
-					name()));
+			final boolean isSdk = parent == SDK;
+			final StringBuilder sb = new StringBuilder();
+			return sb.append(elementOpenTag())
+				.append(source.getCurrentRoot(isSdk).getSourceDirectory())
+				.append(elementCloseTag())
+				.toString();
 		}
 	},
 
@@ -293,52 +354,144 @@ implements XMLElement<AvailPluginConfiguration, AvailPluginElement, AvailPluginS
 		public void endElement (final AvailPluginState state)
 		{
 			state.stopAccumulator();
-			final AvailPluginElement parent = state.parentElement();
-			if (parent == ROOT)
-			{
-				state.configuration().repos.add(state.accumulatorContents());
-			}
-			else if (parent == SDK)
-			{
-				state.configuration().sdkRepos.add(state.accumulatorContents());
-			}
+			state.rootRepository = state.accumulatorContents();
 		}
 
 		@Override
 		@NotNull String xmlContent (
-				final @Nullable AvailPluginElement parent,
-				final @NotNull ConfigurationXMLSource source)
-			throws ConfigurationException
+			final @Nullable AvailPluginElement parent,
+			final @NotNull ConfigurationXMLSource source)
 		{
-			assert parent != null;
-			if (parent == ROOT)
-			{
-				final String value =
-					source.repos.hasNext()
-						? source.repos.next()
-						: "";
-				return encapsulateXMLContent(parent, value);
-			}
-			else if (parent == SDK)
-			{
-				final String value =
-					source.sdkRepos.hasNext()
-						? source.sdkRepos.next()
-						: "";
-				return encapsulateXMLContent(parent, value);
-			}
-			throw new ConfigurationException(
-				String.format(
-					"%s is not a valid parent for %s",
-					parent.name(),
-					name()));
+			final boolean isSdk = parent == SDK;
+			final StringBuilder sb = new StringBuilder();
+			return sb.append(elementOpenTag())
+				.append(source.getCurrentRoot(isSdk).repository)
+				.append(elementCloseTag())
+				.toString();
+		}
+	},
+
+	/**
+	 * A collection of renamed modules.
+	 */
+	RENAMES
+	{
+		@Override
+		public Set<AvailPluginElement> allowedParents ()
+		{
+			return Collections.singleton(AVAIL);
+		}
+
+		@Override
+		public @NotNull List<AvailPluginElement> allowedChildren ()
+		{
+			return Collections.singletonList(RENAME);
+		}
+	},
+
+	/**
+	 * A renamed module.
+	 */
+	RENAME
+	{
+		@Override
+		public Set<AvailPluginElement> allowedParents ()
+		{
+			return Collections.singleton(RENAMES);
+		}
+
+		@Override
+		public @NotNull List<AvailPluginElement> allowedChildren ()
+		{
+			return Arrays.asList(SOURCE, TARGET);
+		}
+
+		@Override
+		public void endElement (final AvailPluginState state)
+		{
+			final AvailRename rename = state.availRename();
+			state.configuration().renameMap.put(rename.source, rename);
+		}
+	},
+
+	/**
+	 * The location of a {@link ModuleRoot} source file.
+	 */
+	SOURCE
+	{
+		@Override
+		public Set<AvailPluginElement> allowedParents ()
+		{
+			return Collections.singleton(RENAME);
+		}
+
+		@Override
+		public void startElement (
+			final AvailPluginState state,
+			final Attributes attributes)
+		{
+			state.startAccumulator();
+		}
+
+		@Override
+		public void endElement (final AvailPluginState state)
+		{
+			state.source = state.accumulatorContents();
+		}
+
+		@Override
+		@NotNull String xmlContent (
+			final @Nullable AvailPluginElement parent,
+			final @NotNull ConfigurationXMLSource source)
+		{
+			return new StringBuilder(elementOpenTag())
+				.append(source.getCurrentRename().source)
+				.append(elementCloseTag())
+				.toString();
+		}
+	},
+
+	/**
+	 * The location of the rename of the module source rootElement.
+	 */
+	TARGET
+	{
+		@Override
+		public Set<AvailPluginElement> allowedParents ()
+		{
+			return Collections.singleton(RENAME);
+		}
+
+		@Override
+		public void startElement (
+			final AvailPluginState state,
+			final Attributes attributes)
+		{
+			state.startAccumulator();
+		}
+
+		@Override
+		public void endElement (final AvailPluginState state)
+		{
+			state.target = state.accumulatorContents();
+		}
+
+		@Override
+		@NotNull String xmlContent (
+			final @Nullable AvailPluginElement parent,
+			final @NotNull ConfigurationXMLSource source)
+		{
+			return new StringBuilder(elementOpenTag())
+				.append(source.getCurrentRename().target)
+				.append(elementCloseTag())
+				.toString();
 		}
 	};
 
 	/**
-	 * The root {@code Element}.
+	 * The rootElement {@code Element}.
 	 */
-	private static final @NotNull AvailPluginElement root = AVAIL;
+	private static final @NotNull AvailPluginElement rootElement = AVAIL;
 
 	/**
 	 * The DTD ordered {@link List} of {@link AvailPluginElement}s that belong
@@ -439,7 +592,7 @@ implements XMLElement<AvailPluginConfiguration, AvailPluginElement, AvailPluginS
 			"<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>\n");
 		sb.append("<!DOCTYPE application SYSTEM \"config/configuration.dtd\">");
 		return sb.append(
-			root.xmlContent(null, configuration.source())).toString();
+			rootElement.xmlContent(null, configuration.source())).toString();
 	}
 
 	@Override

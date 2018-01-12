@@ -80,7 +80,8 @@ extends AvailAction
 	{
 		final Project project = getProject(event);
 		final ProgressManager manager = ProgressManager.getInstance();
-		final AvailBuilder builder = AvailComponent.getInstance().builder();
+		final AvailBuilder builder =
+			AvailComponent.getInstance(project).builder();
 		final ResolvedModuleName resolvedModuleName = this.name;
 		assert resolvedModuleName != null;
 		final EntryPointOptionDialog optionDialog = entryPointOptionDialog(
@@ -185,6 +186,7 @@ extends AvailAction
 
 	@Override
 	protected boolean customVisibilityCheck (
+		final @NotNull AnActionEvent event,
 		final @Nullable AvailPsiFile psiFile)
 	{
 		if (psiFile == null)
@@ -192,7 +194,8 @@ extends AvailAction
 			return false;
 		}
 		final LoadedModule loadedModule =
-			AvailComponent.getInstance().loadedModule(psiFile);
+			AvailComponent.getInstance(
+				psiFile.getProject()).loadedModule(psiFile);
 		if (loadedModule == null)
 		{
 			return false;
