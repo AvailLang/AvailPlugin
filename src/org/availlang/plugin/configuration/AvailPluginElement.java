@@ -76,7 +76,13 @@ implements XMLElement<AvailPluginConfiguration, AvailPluginElement, AvailPluginS
 		@Override
 		public @NotNull List<AvailPluginElement> allowedChildren ()
 		{
-			return Arrays.asList(VERSION, ROOTS, SDKS);
+			return Arrays.asList(VERSION, ROOTS, SDKS, RENAMES);
+		}
+
+		@Override
+		@NotNull String tabs ()
+		{
+			return "";
 		}
 	},
 
@@ -412,6 +418,25 @@ implements XMLElement<AvailPluginConfiguration, AvailPluginElement, AvailPluginS
 			final AvailRename rename = state.availRename();
 			state.configuration().renameMap.put(rename.source, rename);
 		}
+
+		@Override
+		@NotNull String xmlContent (
+			final @Nullable AvailPluginElement parent,
+			final @NotNull ConfigurationXMLSource source)
+		throws ConfigurationException
+		{
+			final StringBuilder sb = new StringBuilder();
+			while (source.hasRename())
+			{
+				sb.append(elementOpenTag());
+				for (final AvailPluginElement child : allowedChildren())
+				{
+					sb.append(child.xmlContent(this, source));
+				}
+				sb.append(elementCloseTag());
+			}
+			return sb.toString();
+		}
 	},
 
 	/**
@@ -517,7 +542,7 @@ implements XMLElement<AvailPluginConfiguration, AvailPluginElement, AvailPluginS
 	 */
 	@NotNull String elementOpenTag ()
 	{
-		return String.format("<%s>", qName());
+		return String.format("%s<%s>%s", tabs(), qName(), openTabsPostfix());
 	}
 
 	/**
@@ -527,7 +552,44 @@ implements XMLElement<AvailPluginConfiguration, AvailPluginElement, AvailPluginS
 	 */
 	@NotNull String elementCloseTag ()
 	{
-		return String.format("</%s>", qName());
+		return String.format("%s</%s>\n", closeTabsPostfix(), qName());
+	}
+
+	private String tabs;
+
+	/**
+	 * Answer the String of {@link #elementOpenTag()} preceding tabs.
+	 *
+	 * @return A String.
+	 */
+	@NotNull String tabs ()
+	{
+		if (tabs == null)
+		{
+			tabs = String.format(
+				"%s\t", allowedParents().iterator().next().tabs());
+		}
+		return tabs;
+	}
+
+	/**
+	 * Answer the String that is to follow the {@link #elementOpenTag()}.
+	 *
+	 * @return A String.
+	 */
+	@NotNull String openTabsPostfix ()
+	{
+		return allowedChildren().isEmpty() ? "" : "\n";
+	}
+
+	/**
+	 * Answer the String that is to follow the {@link #elementOpenTag()}.
+	 *
+	 * @return A String.
+	 */
+	@NotNull String closeTabsPostfix ()
+	{
+		return allowedChildren().isEmpty() ? "" : tabs();
 	}
 
 	/**
@@ -590,7 +652,6 @@ implements XMLElement<AvailPluginConfiguration, AvailPluginElement, AvailPluginS
 		final StringBuilder sb = new StringBuilder();
 		sb.append(
 			"<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>\n");
-		sb.append("<!DOCTYPE application SYSTEM \"config/configuration.dtd\">");
 		return sb.append(
 			rootElement.xmlContent(null, configuration.source())).toString();
 	}

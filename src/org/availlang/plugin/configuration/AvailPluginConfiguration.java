@@ -37,12 +37,9 @@ import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.Nulls;
 import com.avail.utility.configuration.Configuration;
 import com.avail.utility.configuration.XMLConfigurator;
-import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.components.State;
 import com.intellij.openapi.project.Project;
-import org.availlang.plugin.core.AvailComponent;
 import org.availlang.plugin.exceptions.ConfigurationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,15 +81,16 @@ implements Configuration, ProjectComponent
 		"repositories";
 
 	/**
+	 * The location where the Avail root source files are written.
+	 */
+	private static final @NotNull String relativeRootsDirectory =
+		"roots";
+
+	/**
 	 * The version of all newly constructed {@link AvailPluginConfiguration}s
 	 * (the Avail plugin version).
 	 */
 	public static @NotNull String version = "1.0";
-
-	/**
-	 * The name of the directory where the {@link ModuleRoot}s are located.
-	 */
-	public static @NotNull String rootsDirectoryName = "roots";
 
 	/**
 	 * Answer the String version of the platform specific path for the provided
@@ -155,22 +153,29 @@ implements Configuration, ProjectComponent
 	public @NotNull String configurationVersion = version;
 
 	/**
-	 * The {@link Project} holding onto this {@link AvailComponent}.
+	 * The absolute location of the project.
 	 */
-	private final @NotNull Project project;
+	public @NotNull String basePath = "";
+
+	private Project project;
 
 	/**
 	 * The String absolute path of the root repository directory.
 	 */
-	public final @NotNull String repositoryDirectory;
+	public @NotNull String repositoryDirectory = "";
+
+	/**
+	 * The String absolute path of the roots directory.
+	 */
+	public @NotNull String rootsDirectory = "";
 
 	/**
 	 * The String absolute path of the configuration file.
 	 */
-	public final @NotNull String configFileLocation;
+	public @NotNull String configFileLocation = "";
 
 	/**
-	 * Answer the String path relative to the current {@link #project}'s
+	 * Answer the String path relative to the current {@link Project}'s
 	 * location for the provided relative path.
 	 *
 	 * @param relativePath
@@ -182,7 +187,7 @@ implements Configuration, ProjectComponent
 	{
 		return
 			String.format("%s%s%s",
-				transformPlatformPath(project.getBasePath()),
+				transformPlatformPath(basePath),
 				File.separator,
 				transformPlatformPath(relativePath));
 	}
@@ -256,7 +261,7 @@ implements Configuration, ProjectComponent
 	public void projectOpened ()
 	{
 		initializeEnvironmentStructure();
-		final Path path = Paths.get(relativeConfigFileLocation);
+		final Path path = Paths.get(configFileLocation);
 		try (
 			final InputStream in = Files.newInputStream(
 				path, StandardOpenOption.READ))
@@ -275,6 +280,7 @@ implements Configuration, ProjectComponent
 						configFileLocation,
 						validationMessage));
 			}
+			isDirty = false;
 		}
 		catch (final @NotNull NoSuchFileException ex)
 		{
@@ -301,18 +307,30 @@ implements Configuration, ProjectComponent
 	public void initializeEnvironmentStructure ()
 	{
 		final File repoDir = new File(repositoryDirectory);
-		if (! repoDir.exists())
+		if (!repoDir.exists())
 		{
-			repoDir.mkdir();
+			repoDir.mkdirs();
+		}
+		final File rootDir = new File(rootsDirectory);
+		if (!rootDir.exists())
+		{
+			rootDir.mkdirs();
 		}
 		rootMap.forEach((name, root) ->
 		{
+			root.initializeLocations();
 			final File srcDir = new File(root.sourceDirectory);
-			if (! srcDir.exists())
+			if (!srcDir.exists())
 			{
-				srcDir.mkdir();
+				srcDir.mkdirs();
 			}
 		});
+		final File configDir = new File(String.format(
+			"%s%s.idea", basePath, File.separator));
+		if (!configDir.exists())
+		{
+			configDir.mkdir();
+		}
 	}
 
 	/**
@@ -322,26 +340,106 @@ implements Configuration, ProjectComponent
 	public void writeConfigFile ()
 	throws ConfigurationException
 	{
-		final String xmlContent = "";
-		try
+		if (isDirty)
 		{
-			writeByteArrayToFile(
-				configFileLocation, xmlContent.getBytes("UTF-8"));
-			isDirty = false;
-		}
-		catch (final UnsupportedEncodingException e)
-		{
-			// Really, this shouldn't happen
-			throw new ConfigurationException(
-				String.format(
-					"Could not write %s as a UTF-8 file", configFileLocation));
-		}
-		catch (final IOException e)
-		{
-			throw new ConfigurationException(
-				String.format("Could not write file, %s", configFileLocation));
+			final String xmlContent;
+			try
+			{
+				xmlContent = AvailPluginElement.xmlFileContent(this);
+			}
+			catch (final @NotNull
+				com.avail.utility.configuration.ConfigurationException e)
+			{
+				throw new ConfigurationException(e.getMessage(), e);
+			}
+			try
+			{
+				writeByteArrayToFile(
+					configFileLocation, xmlContent.getBytes("UTF-8"));
+				isDirty = false;
+			}
+			catch (final UnsupportedEncodingException e)
+			{
+				// Really, this shouldn't happen
+				throw new ConfigurationException(
+					String.format(
+						"Could not write %s as a UTF-8 file",
+						configFileLocation));
+			}
+			catch (final IOException e)
+			{
+				throw new ConfigurationException(
+					String.format(
+						"Could not write file, %s",
+						configFileLocation));
+			}
 		}
 	}
+
+	/**
+	 * Initialize all the important paths for the Avail project.
+	 *
+	 * @param basePath
+	 *        The location of the Avail module.
+	 */
+	public void initializePaths (
+		final @NotNull String basePath)
+	{
+		this.basePath = basePath;
+		this.configFileLocation = projectBasedPath(relativeConfigFileLocation);
+		this.repositoryDirectory = projectBasedPath(
+			relativeRootRepositoryDirectory);
+		this.rootsDirectory = projectBasedPath(relativeRootsDirectory);
+	}
+
+	/**
+	 * Construct a {@link AvailRoot}.
+	 *
+	 * @param configuration
+	 *        The owning {@link AvailPluginConfiguration}.
+	 * @param isSdk
+	 *        Does this {@link AvailRoot} represent an Avail SDK? {@code
+	 *        true} indicates it does; {@code false} otherwise.
+	 * @param name
+	 *        The {@link ModuleRoot#name()}.
+	 * @param repository
+	 *        The {@link ModuleRoot}'s {@link IndexedRepositoryManager}
+	 *        location.
+	 * @param sourceDirectory
+	 *        The {@link ModuleRoot#sourceDirectory}'s location or {@code
+	 *        null}.
+	 */
+	public @NotNull AvailRoot availRoot (
+		final @NotNull AvailPluginConfiguration configuration,
+		final boolean isSdk,
+		final @NotNull String name,
+		final @NotNull String repository,
+		final @Nullable String sourceDirectory)
+	{
+		return new AvailRoot(
+			configuration, isSdk, name, repository, sourceDirectory);
+	}
+
+	/**
+	 * Answer an {@link AvailRoot} from a {@link ModuleRoot}.
+	 *
+	 * @param isSdk
+	 *        Does this {@link AvailRoot} represent an Avail SDK? {@code
+	 *        true} indicates it does; {@code false} otherwise.
+	 * @param root
+	 *        The {@code ModuleRoot}.
+	 */
+	public @NotNull AvailRoot availRoot (
+		final boolean isSdk,
+		final @NotNull ModuleRoot root)
+	{
+		return new AvailRoot(isSdk, root);
+	}
+
+	/**
+	 * Construct an {@link AvailPluginConfiguration}.
+	 */
+	public AvailPluginConfiguration () { }
 
 	/**
 	 * Construct an {@link AvailPluginConfiguration}.
@@ -354,17 +452,31 @@ implements Configuration, ProjectComponent
 		final @NotNull Project project)
 	{
 		this.project = project;
+		this.basePath = project.getBasePath();
 		this.configFileLocation = projectBasedPath(relativeConfigFileLocation);
 		this.repositoryDirectory = projectBasedPath(
 			relativeRootRepositoryDirectory);
+		this.rootsDirectory = projectBasedPath(relativeRootsDirectory);
 	}
 
 	/**
 	 * An {@code AvailRoot} contains the components to create a {@link
 	 * ModuleRoot}.
 	 */
-	public static class AvailRoot
+	public class AvailRoot
 	{
+		/**
+		 * Does this {@link AvailRoot} represent an Avail SDK? {@code true}
+		 * indicates it does; {@code false} otherwise.
+		 */
+		private final boolean isSdk;
+
+		/**
+		 * Have the {@link AvailRoot} locations been initialized? {@code true}
+		 * indicates yes; {@code false} otherwise.
+		 */
+		private boolean rootInitialized = false;
+
 		/**
 		 * The corresponding {@link ModuleRoot#name()}.
 		 */
@@ -373,12 +485,12 @@ implements Configuration, ProjectComponent
 		/**
 		 * The {@link ModuleRoot}'s {@link IndexedRepositoryManager} location.
 		 */
-		public final @NotNull String repository;
+		public @NotNull String repository = "";
 
 		/**
 		 * The {@link ModuleRoot#sourceDirectory}'s location or {@code null}.
 		 */
-		private final @Nullable String sourceDirectory;
+		private @Nullable String sourceDirectory;
 
 		/**
 		 * Answer the String {@link #sourceDirectory}. If {@link
@@ -417,9 +529,33 @@ implements Configuration, ProjectComponent
 				getSourceDirectoryFile());
 		}
 
+		void initializeLocations ()
+		{
+			if (!rootInitialized)
+			{
+				this.sourceDirectory =
+					String.format(
+						"%s%s%s",
+						AvailPluginConfiguration.this.rootsDirectory,
+						File.separator,
+						name);
+				this.repository = String.format(
+					"%s%s%s.repo",
+					AvailPluginConfiguration.this.repositoryDirectory,
+					File.separator,
+					name);
+				rootInitialized = true;
+			}
+		}
+
 		/**
 		 * Construct a {@link AvailRoot}.
 		 *
+		 * @param configuration
+		 *        The owning {@link AvailPluginConfiguration}.
+		 * @param isSdk
+		 *        Does this {@link AvailRoot} represent an Avail SDK? {@code
+		 *        true} indicates it does; {@code false} otherwise.
 		 * @param name
 		 *        The {@link ModuleRoot#name()}.
 		 * @param repository
@@ -437,38 +573,50 @@ implements Configuration, ProjectComponent
 			final @Nullable String sourceDirectory)
 		{
 			this.name = name;
+			this.isSdk = isSdk;
 			if (isSdk)
 			{
 				this.repository = repository;
 				this.sourceDirectory = sourceDirectory;
+				rootInitialized = true;
 			}
 			else
 			{
-				this.sourceDirectory = configuration.projectBasedPath(
+				this.sourceDirectory =
 					String.format(
 						"%s%s%s",
-						configuration.repositoryDirectory,
+						configuration.rootsDirectory,
 						File.separator,
-						name));
-				this.repository =
-					String.format("%s.repo", this.sourceDirectory);
+						name);
+				this.repository = String.format(
+					"%s%s%s.repo",
+					configuration.repositoryDirectory,
+					File.separator,
+					name);
 			}
 		}
 
 		/**
 		 * Construct an {@link AvailRoot} from a {@link ModuleRoot}.
 		 *
+		 * @param isSdk
+		 *        Does this {@link AvailRoot} represent an Avail SDK? {@code
+		 *        true} indicates it does; {@code false} otherwise.
 		 * @param root
 		 *        The {@code ModuleRoot}.
 		 */
-		public AvailRoot (final @NotNull ModuleRoot root)
+		public AvailRoot (
+			final boolean isSdk,
+			final @NotNull ModuleRoot root)
 		{
+			this.isSdk = isSdk;
 			this.name = root.name();
 			this.repository = root.repository().fileName().getAbsolutePath();
 			this.sourceDirectory =
 				root.sourceDirectory() == null
 					? null
 					: root.sourceDirectory().getAbsolutePath();
+			rootInitialized = true;
 		}
 
 		@Override

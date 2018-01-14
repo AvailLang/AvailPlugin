@@ -28,6 +28,7 @@
     <!--<fileTypeFactory implementation="org.availlang.plugin.file.AvailDirectoryFileTypeFactory"/>-->
     <lang.parserDefinition language="Avail" implementationClass="org.availlang.plugin.parser.AvailParserDefinition"/>
     <moduleType id="AVAIL_MODULE_TYPE" implementationClass="org.availlang.plugin.file.module.AvailModuleType"/>
+    <projectStructureDetector implementation="org.availlang.plugin.file.module.AvailProjectStructureDetector" />
   </extensions>
 
   <project-components>

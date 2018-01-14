@@ -32,13 +32,11 @@
 
 package org.availlang.plugin.file.module.wizard;
 import com.avail.builder.ModuleNameResolver;
-import com.intellij.ide.wizard.CommitStepException;
-import com.intellij.openapi.project.Project;
+import com.avail.builder.ModuleRoot;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.table.JBTable;
 import org.availlang.plugin.configuration.AvailPluginConfiguration;
 import org.availlang.plugin.configuration.AvailPluginConfiguration.AvailRename;
-import org.availlang.plugin.exceptions.ConfigurationException;
 import org.availlang.plugin.ui.model.SimpleTableModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,27 +61,26 @@ public class AvailRenamesStep
 extends AvailConfigurationStep
 {
 	/**
-	 * The {@link SimpleTableModel} used for setting up Avail {@link
-	 * ModuleNameResolver} {@linkplain ModuleNameResolver#addRenameRule(String,
-	 * String) renames}.
+	 * Answer a {@link SimpleTableModel} used for setting {@link ModuleRoot}s.
 	 */
-	private final @NotNull SimpleTableModel renamesTableModel =
-		new SimpleTableModel("source", "target");
+	private static final @NotNull SimpleTableModel renamesTableModel ()
+	{
+		return new SimpleTableModel("source", "target");
+	}
+
+	/**
+	 * The {@link SimpleTableModel} used for setting {@link ModuleRoot}s.
+	 */
+	private SimpleTableModel renamesTableModel;
 
 	@Override
-	public void onWizardFinished () throws CommitStepException
+	public @NotNull SimpleTableModel tableModel ()
 	{
-		try
+		if (renamesTableModel == null)
 		{
-			final AvailPluginConfiguration configuration =
-				getProject().getComponent(AvailPluginConfiguration.class);
-			configuration.initializeEnvironmentStructure();
-			configuration.writeConfigFile();
+			renamesTableModel = renamesTableModel();
 		}
-		catch (final @NotNull ConfigurationException e)
-		{
-			throw new CommitStepException(e.getMessage());
-		}
+		return renamesTableModel;
 	}
 
 	/**
@@ -95,9 +92,7 @@ extends AvailConfigurationStep
 	@Override
 	public void updateDataModel()
 	{
-		final AvailPluginConfiguration configuration =
-			getProject().getComponent(AvailPluginConfiguration.class);
-		configuration.sdkMap.clear();
+		configuration.renameMap.clear();
 		configuration.markDirty();
 		localRenamesMap.forEach(configuration.renameMap::put);
 	}
@@ -106,7 +101,7 @@ extends AvailConfigurationStep
 	public boolean validate () throws com.intellij.openapi.options.ConfigurationException
 	{
 		int i = 1;
-		for (final List<String> row : renamesTableModel.rows())
+		for (final List<String> row : tableModel().rows())
 		{
 			if (row.size() != 2)
 			{
@@ -134,12 +129,6 @@ extends AvailConfigurationStep
 			i++;
 		}
 		return true;
-	}
-
-	@Override
-	public @NotNull SimpleTableModel tableModel ()
-	{
-		return renamesTableModel;
 	}
 
 	@Override
@@ -177,7 +166,7 @@ extends AvailConfigurationStep
 					insertionIndex = renamesTableModel.getRowCount();
 				}
 				renamesTableModel.rows().add(
-					insertionIndex, Arrays.asList("", "", ""));
+					insertionIndex, Arrays.asList("", ""));
 				renamesTableModel.fireTableDataChanged();
 				jbTable.changeSelection(
 					insertionIndex, 0, false, false);
@@ -215,11 +204,13 @@ extends AvailConfigurationStep
 	/**
 	 * Construct a {@link AvailRenamesStep}.
 	 *
-	 * @param project
-	 *        The {@link Project} this {@code AvailSdkStep} is for.
+	 * @param configuration
+	 *        The {@link AvailPluginConfiguration} used to configure the
+	 *        project.
 	 */
-	public AvailRenamesStep (final @NotNull Project project)
+	public AvailRenamesStep (
+		final @NotNull AvailPluginConfiguration configuration)
 	{
-		super(project);
+		super(configuration);
 	}
 }

@@ -33,7 +33,6 @@
 package org.availlang.plugin.file.module.wizard;
 import com.avail.builder.ModuleRoot;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.table.JBTable;
 import org.availlang.plugin.configuration.AvailPluginConfiguration;
@@ -48,6 +47,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static java.lang.Math.min;
 
@@ -62,14 +62,25 @@ public class AvailSdkStep
 extends AvailConfigurationStep
 {
 	/**
+	 * Answer a {@link SimpleTableModel} used for setting {@link ModuleRoot}s.
+	 */
+	private static @NotNull SimpleTableModel sdksTableModel ()
+	{
+		return new SimpleTableModel("repository file", "source");
+	}
+
+	/**
 	 * The {@link SimpleTableModel} used for setting {@link ModuleRoot}s.
 	 */
-	private final @NotNull SimpleTableModel sdksTableModel =
-		new SimpleTableModel("repository file", "source");
+	private SimpleTableModel sdksTableModel;
 
 	@Override
 	public @NotNull SimpleTableModel tableModel ()
 	{
+		if (sdksTableModel == null)
+		{
+			sdksTableModel = sdksTableModel();
+		}
 		return sdksTableModel;
 	}
 
@@ -82,25 +93,28 @@ extends AvailConfigurationStep
 	/**
 	 * The input {@linkplain AvailRoot Avail SDKs}.
 	 */
-	private final @NotNull Map<String, AvailRoot> localSdkMap = new HashMap<>();
+	private final @NotNull
+	Map<String, Function<AvailPluginConfiguration, AvailRoot>> localSdkMap =
+		new HashMap<>();
 
 	@Override
 	public void updateDataModel()
 	{
-		final AvailPluginConfiguration configuration =
-			getProject().getComponent(AvailPluginConfiguration.class);
 		configuration.sdkMap.clear();
 		configuration.markDirty();
-		localSdkMap.forEach(configuration.sdkMap::put);
+		localSdkMap.forEach(
+			(k,v) -> configuration.sdkMap.put(k, v.apply(configuration)));
 	}
 
 	@Override
 	public boolean validate () throws ConfigurationException
 	{
-		final AvailPluginConfiguration configuration =
-			getProject().getComponent(AvailPluginConfiguration.class);
+		if (tableModel().rows().isEmpty())
+		{
+			return true;
+		}
 		int i = 1;
-		for (final List<String> row : sdksTableModel.rows())
+		for (final List<String> row : tableModel().rows())
 		{
 			if (row.size() != 2)
 			{
@@ -122,7 +136,7 @@ extends AvailConfigurationStep
 					String.format("Row %d is missing an SDK file", i));
 			}
 			final String[] splitName =
-				directoryPath[size - 1].split(".");
+				directoryPath[size - 1].split("\\.");
 			if (splitName.length != 2 && !splitName[1].equals("repo"))
 			{
 				throw new ConfigurationException(
@@ -139,14 +153,14 @@ extends AvailConfigurationStep
 						"Row %d is missing an SDK source directory", i));
 			}
 
-			final AvailRoot sdk =
-				new AvailRoot(
+			localSdkMap.put(
+				splitName[0],
+				configuration -> configuration.availRoot(
 					configuration,
 					true,
 					splitName[0],
 					directoryPath[size - 1],
-					row.get(2));
-			localSdkMap.put(sdk.name, sdk);
+					row.get(1)));
 			i++;
 		}
 		return true;
@@ -158,12 +172,10 @@ extends AvailConfigurationStep
 	{
 		jbTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
 		final TableColumnModel sdksColumns = jbTable.getColumnModel();
-		sdksColumns.getColumn(0).setMinWidth(30);
-		sdksColumns.getColumn(0).setPreferredWidth(60);
+		sdksColumns.getColumn(0).setMinWidth(50);
+		sdksColumns.getColumn(0).setPreferredWidth(100);
 		sdksColumns.getColumn(1).setMinWidth(50);
-		sdksColumns.getColumn(1).setPreferredWidth(400);
-		sdksColumns.getColumn(2).setMinWidth(50);
-		sdksColumns.getColumn(2).setPreferredWidth(400);
+		sdksColumns.getColumn(1).setPreferredWidth(100);
 		jbTable.setGridColor(JBColor.GRAY);
 		jbTable.setFillsViewportHeight(true);
 		return sdksColumns;
@@ -181,9 +193,14 @@ extends AvailConfigurationStep
 				if (insertionIndex == -1)
 				{
 					insertionIndex = sdksTableModel.getRowCount();
+					sdksTableModel.rows().add(Arrays.asList("", ""));
 				}
-				sdksTableModel.rows().add(
-					insertionIndex, Arrays.asList("", "", ""));
+				else
+				{
+					insertionIndex = insertionIndex + 1;
+					sdksTableModel.rows().add(
+						insertionIndex, Arrays.asList("", ""));
+				}
 				sdksTableModel.fireTableDataChanged();
 				jbTable.changeSelection(
 					insertionIndex, 0, false, false);
@@ -221,11 +238,12 @@ extends AvailConfigurationStep
 	/**
 	 * Construct a {@link AvailSdkStep}.
 	 *
-	 * @param project
-	 *        The {@link Project} this {@code AvailSdkStep} is for.
+	 * @param configuration
+	 *        The {@link AvailPluginConfiguration} used to configure the
+	 *        project.
 	 */
-	public AvailSdkStep (final @NotNull Project project)
+	public AvailSdkStep (final @NotNull AvailPluginConfiguration configuration)
 	{
-		super(project);
+		super(configuration);
 	}
 }

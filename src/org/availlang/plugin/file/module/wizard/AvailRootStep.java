@@ -45,9 +45,11 @@ import javax.swing.*;
 import javax.swing.table.TableColumnModel;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static java.lang.Math.min;
 
@@ -61,14 +63,25 @@ public class AvailRootStep
 extends AvailConfigurationStep
 {
 	/**
+	 * Answer a {@link SimpleTableModel} used for setting {@link ModuleRoot}s.
+	 */
+	private static @NotNull SimpleTableModel rootsTableModel ()
+	{
+		return new SimpleTableModel("root");
+	}
+
+	/**
 	 * The {@link SimpleTableModel} used for setting {@link ModuleRoot}s.
 	 */
-	private final @NotNull SimpleTableModel rootsTableModel =
-		new SimpleTableModel("root name");
+	private SimpleTableModel rootsTableModel;
 
 	@Override
 	public @NotNull SimpleTableModel tableModel ()
 	{
+		if (rootsTableModel == null)
+		{
+			rootsTableModel = rootsTableModel();
+		}
 		return rootsTableModel;
 	}
 
@@ -81,26 +94,29 @@ extends AvailConfigurationStep
 	/**
 	 * The input {@linkplain AvailRoot Avail roots}.
 	 */
-	private final @NotNull Map<String, AvailRoot> localRootMap =
+	private final @NotNull
+	Map<String, Function<AvailPluginConfiguration, AvailRoot>> localRootMap =
 		new HashMap<>();
 
 	@Override
 	public void updateDataModel()
 	{
-		final AvailPluginConfiguration configuration =
-			getProject().getComponent(AvailPluginConfiguration.class);
 		configuration.rootMap.clear();
 		configuration.markDirty();
-		localRootMap.forEach(configuration.rootMap::put);
+		localRootMap.forEach(
+			(k,v) -> configuration.rootMap.put(k, v.apply(configuration)));
 	}
 
 	@Override
 	public boolean validate () throws ConfigurationException
 	{
-		final AvailPluginConfiguration configuration =
-			getProject().getComponent(AvailPluginConfiguration.class);
+		if (tableModel().rows().isEmpty())
+		{
+			throw new ConfigurationException(
+				"No roots added; at least one root must be added");
+		}
 		int i = 1;
-		for (final List<String> row : rootsTableModel.rows())
+		for (final List<String> row : tableModel().rows())
 		{
 			if (row.size() != 1)
 			{
@@ -121,14 +137,15 @@ extends AvailConfigurationStep
 							+ "\"\\\" nor \"/\" are permitted in the root name",
 						i));
 			}
-			final AvailRoot root =
-				new AvailRoot(
-					configuration,
+
+			localRootMap.put(
+				name,
+				conf -> configuration.availRoot(
+					conf,
 					false,
 					name,
 					"",
-					"");
-			localRootMap.put(root.name, root);
+					""));
 			i++;
 		}
 		return true;
@@ -141,7 +158,7 @@ extends AvailConfigurationStep
 		jbTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
 		final TableColumnModel rootColumns = jbTable.getColumnModel();
 		rootColumns.getColumn(0).setMinWidth(50);
-		rootColumns.getColumn(0).setPreferredWidth(450);
+		rootColumns.getColumn(0).setPreferredWidth(200);
 		jbTable.setGridColor(JBColor.GRAY);
 		jbTable.setFillsViewportHeight(true);
 		return rootColumns;
@@ -159,9 +176,14 @@ extends AvailConfigurationStep
 				if (insertionIndex == -1)
 				{
 					insertionIndex = rootsTableModel.getRowCount();
+					rootsTableModel.rows().add(Arrays.asList(""));
 				}
-				rootsTableModel.rows().add(
-					insertionIndex, Arrays.asList("", "", ""));
+				else
+				{
+					insertionIndex = insertionIndex + 1;
+					rootsTableModel.rows().add(
+						insertionIndex, Arrays.asList(""));
+				}
 				rootsTableModel.fireTableDataChanged();
 				jbTable.changeSelection(
 					insertionIndex, 0, false, false);
@@ -199,11 +221,12 @@ extends AvailConfigurationStep
 	/**
 	 * Construct a {@link AvailRootStep}.
 	 *
-	 * @param project
-	 *        The {@link Project} this {@code AvailSdkStep} is for.
+	 * @param configuration
+	 *        The {@link AvailPluginConfiguration} used to configure the
+	 *        project.
 	 */
-	public AvailRootStep (final @NotNull Project project)
+	public AvailRootStep (final @NotNull AvailPluginConfiguration configuration)
 	{
-		super(project);
+		super(configuration);
 	}
 }

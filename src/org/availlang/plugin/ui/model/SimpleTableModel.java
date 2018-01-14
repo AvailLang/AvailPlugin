@@ -102,7 +102,8 @@ extends AbstractTableModel
 	public void setValueAt (
 		final Object value,
 		final int row,
-		final int column) {
+		final int column)
+	{
 		rows.get(row).set(column, (String) value);
 		fireTableCellUpdated(row, column);
 	}

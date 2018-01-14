@@ -90,7 +90,7 @@ extends XMLConfiguratorState<AvailPluginConfiguration, AvailPluginElement, Avail
 			throw new ConfigurationException(
 				"Avail configuration file missing repository path.");
 		}
-		final AvailRoot root = new AvailRoot(
+		final AvailRoot root = configuration().availRoot(
 			configuration(),
 			isSDK,
 			rootName,
