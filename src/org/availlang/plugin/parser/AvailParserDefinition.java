@@ -43,7 +43,7 @@ import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.availlang.plugin.language.AvailLanguage;
 import org.availlang.plugin.lexer.AvailLexer;
-import org.availlang.plugin.psi.AvailPsiFile;
+import org.availlang.plugin.file.psi.AvailPsiFile;
 import org.jetbrains.annotations.NotNull;
 
 /**

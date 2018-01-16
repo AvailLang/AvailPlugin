@@ -1,5 +1,5 @@
 /*
- * AvailElementType.java
+ * AvailVirtualFile.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,27 +29,113 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package org.availlang.plugin.psi;
-import com.intellij.psi.tree.IElementType;
-import org.availlang.plugin.language.AvailLanguage;
+
+package org.availlang.plugin.file.vfs;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
- * An {@code AvailElementType} is an {@link IElementType}.
+ * A {@code AvailVirtualFile} is TODO: Document this!
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class AvailElementType extends IElementType
+public class AvailVirtualFile
+extends VirtualFile
 {
-	/**
-	 * Construct a {@link AvailElementType}.
-	 *
-	 * @param debugName
-	 *        The name of the element type, used for debugging purposes.
-	 */
-	public AvailElementType (
-		final @NotNull String debugName)
+	@Override
+	public @NotNull String getName ()
 	{
-		super(debugName, AvailLanguage.soleInstance);
+		return null;
+	}
+
+	@Override
+	public @NotNull VirtualFileSystem getFileSystem ()
+	{
+		return null;
+	}
+
+	@Override
+	public @NotNull String getPath ()
+	{
+		return null;
+	}
+
+	@Override
+	public boolean isWritable ()
+	{
+		return false;
+	}
+
+	@Override
+	public boolean isDirectory ()
+	{
+		return false;
+	}
+
+	@Override
+	public boolean isValid ()
+	{
+		return false;
+	}
+
+	@Override
+	public VirtualFile getParent ()
+	{
+		return null;
+	}
+
+	@Override
+	public VirtualFile[] getChildren ()
+	{
+		return new VirtualFile[0];
+	}
+
+	@Override
+	public @NotNull OutputStream getOutputStream (
+		final Object requestor,
+		final long newModificationStamp,
+		final long newTimeStamp)
+	throws IOException
+	{
+		return null;
+	}
+
+	@Override
+	public @NotNull byte[] contentsToByteArray () throws IOException
+	{
+		return new byte[0];
+	}
+
+	@Override
+	public long getTimeStamp ()
+	{
+		return 0;
+	}
+
+	@Override
+	public long getLength ()
+	{
+		return 0;
+	}
+
+	@Override
+	public void refresh (
+		final boolean asynchronous,
+		final boolean recursive,
+		final @Nullable Runnable postRunnable)
+	{
+
+	}
+
+	@Override
+	public InputStream getInputStream () throws IOException
+	{
+		return null;
 	}
 }

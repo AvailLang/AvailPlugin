@@ -63,10 +63,8 @@ extends DisplayAndBuildModules
 		final @NotNull ProgressManager manager,
 		final @NotNull AnActionEvent event)
 	{
-		final AvailBuilder builder =
-			AvailComponent.getInstance(project).builder();
 		RunEntryPoint.
-			runEntryPoint(event, manager, builder, entryPointCommand);
+			runEntryPoint(getAvailComponent(event), manager, entryPointCommand);
 	}
 
 	@Override

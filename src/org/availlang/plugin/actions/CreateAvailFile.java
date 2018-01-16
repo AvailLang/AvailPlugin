@@ -1,5 +1,5 @@
 /*
- * BuildModuleRoot.java
+ * CreateAvailFile.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,58 +29,94 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package org.availlang.plugin.build;
-import com.avail.builder.ModuleRoot;
-import com.avail.builder.ResolvedModuleName;
-import com.intellij.openapi.actionSystem.AnAction;
+
+package org.availlang.plugin.actions;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.progress.ProgressManager;
-import org.availlang.plugin.actions.AvailAction;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
+import org.availlang.plugin.icons.AvailIcon;
 import org.availlang.plugin.file.psi.AvailPsiFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
 
 /**
- * A {@code BuildModuleRoot} is {@link AnAction} that causes a {@link
- * ModuleRoot} to build.
+ * A {@code CreateAvailFile} is an {@link AvailAction} used to create a new
+ * Avail file.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class BuildModuleRoot
+public class CreateAvailFile
 extends AvailAction
 {
-	/**
-	 * The top leve {@link ModuleRoot}.
-	 */
-	private final @NotNull ResolvedModuleName resolvedModuleName;
-
-	/**
-	 * Construct a {@link BuildModuleRoot}.
-	 *
-	 * @param resolvedModuleName
-	 *        The {@link ResolvedModuleName} of the {@link ModuleRoot} to build.
-	 */
-	public BuildModuleRoot (
-		final @NotNull ResolvedModuleName resolvedModuleName)
-	{
-		this.resolvedModuleName = resolvedModuleName;
-	}
-
 	@Override
 	public void actionPerformed (final AnActionEvent event)
 	{
-		BuildModule.build(
-			false, false,
-			getAvailComponent(event),
-			ProgressManager.getInstance(),
-			resolvedModuleName);
+		final AvailPsiFile psiFile = psiFile(event);
+		if (psiFile != null)
+		{
+			final PsiDirectory psiDirectory = psiFile.getParent();
+			final String dirPath = psiFile.getVirtualFile().getPath();
+			// TODO create a dialog to get file name
+			final File newFile = new File(dirPath
+				+ File.separator
+				+ "new name.avail");
+			if (newFile.exists())
+			{
+				// TODO throw error dialog
+			}
+			else
+			{
+				try
+				{
+					boolean created = newFile.createNewFile();
+					if (!created)
+					{
+						// TODO say something!
+					}
+					else
+					{
+//						final VirtualFile vf =
+					}
+				}
+				catch (final @NotNull IOException e)
+				{
+
+				}
+			}
+
+		}
+		else
+		{
+			final Object o = event.getData(CommonDataKeys.NAVIGATABLE);
+			// TODO make an Avail PSIDirectory, then get the location
+		}
 	}
 
 	@Override
-	protected @NotNull String customMenuItem (
+	protected @Nullable Icon icon ()
+	{
+		return AvailIcon.availFileIcon;
+	}
+
+	@Override
+	protected boolean customVisibilityCheck (
+		final @NotNull AnActionEvent event,
 		final @Nullable AvailPsiFile psiFile)
 	{
-		return  resolvedModuleName.localName();
+		if (psiFile == null)
+		{
+			final Object o = event.getData(CommonDataKeys.NAVIGATABLE);
+			// TODO check if Avail PSI Directory
+			return true;
+		}
+		else
+		{
+			return true;
+		}
 	}
 }

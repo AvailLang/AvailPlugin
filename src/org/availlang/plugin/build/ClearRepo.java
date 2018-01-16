@@ -40,6 +40,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task.Backgroundable;
 import com.intellij.openapi.progress.util.ProgressWindow;
+import com.intellij.openapi.project.Project;
 import org.availlang.plugin.actions.AvailAction;
 import org.availlang.plugin.core.AvailComponent;
 import org.availlang.plugin.exceptions.AvailPluginException;
@@ -61,7 +62,7 @@ extends AvailAction
 	public void actionPerformed (final AnActionEvent event)
 	{
 		// TODO get the repo name from somewhere and call clear repository.
-//		AvailComponent.getInstance().clearRepository(rootName, event, () -> {});
+//		getAvailComponent(event).clearRepository(rootName, event, () -> {});
 	}
 
 	/**
@@ -69,21 +70,21 @@ extends AvailAction
 	 *
 	 * @param root
 	 *        The {@code ModuleRoot} to clear.
-	 * @param event
-	 *        The {@link AnActionEvent} that prompted this clearing.
+	 * @param component
+	 *        The {@link AvailComponent} held by this {@link Project}.
 	 * @param onSuccess
 	 *        The {@link Continuation0} to run after clearing the repository.
 	 */
 	public static void clearRepository (
 		final @NotNull ModuleRoot root,
-		final @NotNull AnActionEvent event,
+		final @NotNull AvailComponent component,
 		final @NotNull Continuation0 onSuccess)
 	{
 		final ProgressManager manager = ProgressManager.getInstance();
 		final String label = String.format("Clearing %s", root.name());
 		manager.runProcessWithProgressAsynchronously(
 			new Backgroundable(
-				event.getProject(),
+				component.getProject(),
 				label,
 				true)
 			{
@@ -111,6 +112,6 @@ extends AvailAction
 					}
 				}
 			},
-			new ProgressWindow(true, event.getProject()));
+			new ProgressWindow(true, component.getProject()));
 	}
 }

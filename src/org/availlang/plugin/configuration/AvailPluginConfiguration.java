@@ -100,15 +100,13 @@ implements Configuration, ProjectComponent
 	 *        The path to make platform-specific.
 	 * @return A platform-specific String representation of a path.
 	 */
-	static @NotNull String transformPlatformPath (
+	private static @NotNull String transformPlatformPath (
 		final @NotNull String path)
 	{
 		final String[] directoryPath = path.contains("/")
 			? path.split("/")
 			: path.split("\\\\");
-		final String platformSpecificPath =
-			String.join(File.separator, directoryPath);
-		return platformSpecificPath;
+		return String.join(File.separator, directoryPath);
 	}
 
 	/**
@@ -118,16 +116,25 @@ implements Configuration, ProjectComponent
 	 *        The file location for the output of data.
 	 * @param data
 	 *        The {@code byte} {@code array} to write.
-	 * @return A String representing the full write location of the file.
 	 */
-	public static @NotNull String writeByteArrayToFile (
+	private static void writeByteArrayToFile (
 		final @NotNull String outputLocation,
 		final byte[] data) throws IOException
 	{
-		final FileOutputStream fileOutputStream =
-			new FileOutputStream(outputLocation);
-		fileOutputStream.write(data);
-		return outputLocation;
+		FileOutputStream fileOutputStream = null;
+		try
+		{
+			fileOutputStream =
+				new FileOutputStream(outputLocation);
+			fileOutputStream.write(data);
+		}
+		finally
+		{
+			if (fileOutputStream != null)
+			{
+				fileOutputStream.close();
+			}
+		}
 	}
 
 	/**
@@ -157,8 +164,6 @@ implements Configuration, ProjectComponent
 	 */
 	public @NotNull String basePath = "";
 
-	private Project project;
-
 	/**
 	 * The String absolute path of the root repository directory.
 	 */
@@ -172,7 +177,7 @@ implements Configuration, ProjectComponent
 	/**
 	 * The String absolute path of the configuration file.
 	 */
-	public @NotNull String configFileLocation = "";
+	private @NotNull String configFileLocation = "";
 
 	/**
 	 * Answer the String path relative to the current {@link Project}'s
@@ -262,10 +267,10 @@ implements Configuration, ProjectComponent
 	{
 		initializeEnvironmentStructure();
 		final Path path = Paths.get(configFileLocation);
-		try (
-			final InputStream in = Files.newInputStream(
-				path, StandardOpenOption.READ))
+		InputStream in = null;
+		try
 		{
+			in = Files.newInputStream(path, StandardOpenOption.READ);
 			new XMLConfigurator<>(
 				this,
 				new AvailPluginState(this),
@@ -299,6 +304,20 @@ implements Configuration, ProjectComponent
 			throw new ConfigurationException(
 				String.format("Problem with %s", configFileLocation), ex);
 		}
+		finally
+		{
+			if (in != null)
+			{
+				try
+				{
+					in.close();
+				}
+				catch (final @NotNull IOException e)
+				{
+					// Do nothing
+				}
+			}
+		}
 	}
 
 	/**
@@ -319,10 +338,14 @@ implements Configuration, ProjectComponent
 		rootMap.forEach((name, root) ->
 		{
 			root.initializeLocations();
-			final File srcDir = new File(root.sourceDirectory);
-			if (!srcDir.exists())
+			final String sourceDirectory = root.getSourceDirectory();
+			if (!sourceDirectory.isEmpty())
 			{
-				srcDir.mkdirs();
+				final File srcDir = new File(sourceDirectory);
+				if (!srcDir.exists())
+				{
+					srcDir.mkdirs();
+				}
 			}
 		});
 		final File configDir = new File(String.format(
@@ -451,8 +474,7 @@ implements Configuration, ProjectComponent
 	public AvailPluginConfiguration (
 		final @NotNull Project project)
 	{
-		this.project = project;
-		this.basePath = project.getBasePath();
+		this.basePath = Nulls.stripNull(project.getBasePath());
 		this.configFileLocation = projectBasedPath(relativeConfigFileLocation);
 		this.repositoryDirectory = projectBasedPath(
 			relativeRootRepositoryDirectory);
@@ -485,7 +507,7 @@ implements Configuration, ProjectComponent
 		/**
 		 * The {@link ModuleRoot}'s {@link IndexedRepositoryManager} location.
 		 */
-		public @NotNull String repository = "";
+		public @NotNull String repository;
 
 		/**
 		 * The {@link ModuleRoot#sourceDirectory}'s location or {@code null}.
@@ -510,7 +532,7 @@ implements Configuration, ProjectComponent
 		 *
 		 * @return A {@code File} or {@code null}.
 		 */
-		public @Nullable File getSourceDirectoryFile ()
+		@Nullable File getSourceDirectoryFile ()
 		{
 			return sourceDirectory == null ? null : new File(sourceDirectory);
 		}
@@ -565,7 +587,7 @@ implements Configuration, ProjectComponent
 		 *        The {@link ModuleRoot#sourceDirectory}'s location or {@code
 		 *        null}.
 		 */
-		public AvailRoot (
+		AvailRoot (
 			final @NotNull AvailPluginConfiguration configuration,
 			final boolean isSdk,
 			final @NotNull String name,
@@ -605,7 +627,7 @@ implements Configuration, ProjectComponent
 		 * @param root
 		 *        The {@code ModuleRoot}.
 		 */
-		public AvailRoot (
+		AvailRoot (
 			final boolean isSdk,
 			final @NotNull ModuleRoot root)
 		{
@@ -615,7 +637,7 @@ implements Configuration, ProjectComponent
 			this.sourceDirectory =
 				root.sourceDirectory() == null
 					? null
-					: root.sourceDirectory().getAbsolutePath();
+					: Nulls.stripNull(root.sourceDirectory()).getAbsolutePath();
 			rootInitialized = true;
 		}
 

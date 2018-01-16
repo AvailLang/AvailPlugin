@@ -34,6 +34,7 @@ import com.avail.builder.AvailBuilder;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.utility.Nulls;
 import com.avail.utility.evaluation.Continuation0;
+import com.intellij.icons.AllIcons.Welcome.Project;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -41,10 +42,9 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task.Backgroundable;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import org.availlang.plugin.actions.AvailAction;
-import org.availlang.plugin.actions.DisplayAndBuildModules;
 import org.availlang.plugin.core.AvailComponent;
 import org.availlang.plugin.language.AvailLanguage;
-import org.availlang.plugin.psi.AvailPsiFile;
+import org.availlang.plugin.file.psi.AvailPsiFile;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -69,58 +69,103 @@ extends AvailAction
 			psiFile.resolvedModuleName();
 		if (resolvedModuleName != null)
 		{
-			build(false, event, manager, resolvedModuleName);
+			build(
+				false,
+				false,
+				getAvailComponent(event),
+				manager,
+				resolvedModuleName);
 		}
 	}
 
-
+	/**
+	 * Build the {@link ResolvedModuleName}.
+	 *
+	 * @param loadingOnly
+	 *        Indicates whether or not this build is to load modules or build
+	 *        and load them. {@code true} indicates loading only.
+	 * @param startInBackground
+	 *        Indicates whether or not this build should be done in the
+	 *        background.
+	 * @param component
+	 *        The {@link AvailComponent} used by this {@link Project}.
+	 * @param manager
+	 *        The {@link ProgressManager} that reports progress to the user.
+	 * @param resolvedModuleName
+	 *        The {@code ResolvedModuleName} to build.
+	 */
 	public static void build (
 		final boolean loadingOnly,
-		final @NotNull AnActionEvent event,
+		final boolean startInBackground,
+		final @NotNull AvailComponent component,
 		final @NotNull ProgressManager manager,
 		final @NotNull ResolvedModuleName resolvedModuleName)
 	{
-		build(loadingOnly, event, manager, resolvedModuleName, () -> {});
+		build(
+			loadingOnly,
+			component,
+			manager,
+			startInBackground,
+			resolvedModuleName,
+			() -> {});
 	}
 
 	/**
-	 * The action to perform upon successful completion of {@linkplain
-	 * BuildModule#build(boolean, AnActionEvent, ProgressManager,
-	 * ResolvedModuleName) building a module}.
+	 * Build all the {@link ResolvedModuleName}s in the provided {@link
+	 * Iterator}.
 	 *
-	 * @param toBuildList
-	 *        The {@link Iterator} of {@link ResolvedModuleName}s to build.
+	 * @param loadingOnly
+	 *        Indicates whether or not this build is to load modules or build
+	 *        and load them. {@code true} indicates loading only.
+	 * @param startInBackground
+	 *        Indicates whether or not this build should be done in the
+	 *        background.
+	 * @param toBuildIterator
+	 *        The {@code Iterator} of {@code ResolvedModuleName}s to build.
 	 * @param manager
 	 *        The {@link ProgressManager}.
-	 * @param event
-	 *        The {@link AnActionEvent} that triggered the {@link
-	 *        DisplayAndBuildModules}.
+	 * @param component
+	 *        The {@link AvailComponent} held on to by the {@link Project}
+	 *        requesting the build.
+	 * @param done
+	 *        The {@link Continuation0} to run when the load is complete.
 	 */
 	public static void buildModules (
 		final boolean loadingOnly,
-		final @NotNull Iterator<ResolvedModuleName> toBuildList,
+		final boolean startInBackground,
+		final @NotNull Iterator<ResolvedModuleName> toBuildIterator,
 		final @NotNull ProgressManager manager,
-		final @NotNull AnActionEvent event,
+		final @NotNull AvailComponent component,
 		final @NotNull Continuation0 done)
 	{
-		if (toBuildList.hasNext())
+		if (toBuildIterator.hasNext())
 		{
-			final ResolvedModuleName name = toBuildList.next();
-			final AvailComponent component =
-				AvailComponent.getInstance(Nulls.stripNull(getEventProject(event)));
+			final ResolvedModuleName name = toBuildIterator.next();
 			if (component.builder().getLoadedModule(name) == null)
 			{
 				BuildModule.build(
 					loadingOnly,
-					event,
+					component,
 					manager,
+					startInBackground,
 					name,
 					() -> buildModules(
-						loadingOnly, toBuildList, manager, event, done));
+						loadingOnly,
+						startInBackground,
+						toBuildIterator,
+						manager,
+						component,
+						done));
 			}
 			else
 			{
-				buildModules(loadingOnly, toBuildList, manager, event, done);
+				buildModules(
+					loadingOnly,
+					startInBackground,
+					toBuildIterator,
+					manager,
+					component,
+					done);
 			}
 		}
 		else
@@ -132,23 +177,33 @@ extends AvailAction
 	/**
 	 * Build a {@link ResolvedModuleName}.
 	 *
-	 * @param event
-	 *        The {@link AnActionEvent}.
+	 * @param loadingOnly
+	 *        Indicates whether or not this build is to load modules or build
+	 *        and load them. {@code true} indicates loading only.
+	 * @param component
+	 *        The {@link AvailComponent} held on to by the {@link Project}
+	 *        requesting the build.
 	 * @param manager
 	 *        The {@link ProgressManager}.
+	 * @param startInBackground
+	 *        Indicates whether or not this build should be done in the
+	 *        background.
 	 * @param resolvedModuleName
 	 *        The {@code ResolvedModuleName} to build.
+	 * @param onSuccess
+	 *        The {@link Continuation0} to call upon successful completion of
+	 *        the build.
 	 */
+	@SuppressWarnings("WeakerAccess")
 	public static void build (
 		final boolean loadingOnly,
-		final @NotNull AnActionEvent event,
+		final @NotNull AvailComponent component,
 		final @NotNull ProgressManager manager,
+		final boolean startInBackground,
 		final @NotNull ResolvedModuleName resolvedModuleName,
 		final @NotNull Continuation0 onSuccess)
 	{
-		final AvailBuilder builder =
-			AvailComponent.getInstance(
-				Nulls.stripNull(getEventProject(event))).builder();
+		final AvailBuilder builder = component.builder();
 		final String label = loadingOnly
 			? String.format(
 				"Loading %s",
@@ -158,7 +213,7 @@ extends AvailAction
 				resolvedModuleName.qualifiedName());
 		manager.runProcessWithProgressAsynchronously(
 			new Backgroundable(
-				event.getProject(),
+				component.getProject(),
 				label,
 				true)
 			{
@@ -166,6 +221,12 @@ extends AvailAction
 				public void onSuccess ()
 				{
 					onSuccess.value();
+				}
+
+				@Override
+				public boolean shouldStartInBackground ()
+				{
+					return startInBackground;
 				}
 
 				@Override
@@ -200,7 +261,7 @@ extends AvailAction
 					);
 				}
 			},
-			new ProgressWindow(true, event.getProject()));
+			new ProgressWindow(true, component.getProject()));
 	}
 
 	@Override

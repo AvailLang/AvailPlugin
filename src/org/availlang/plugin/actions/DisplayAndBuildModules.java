@@ -37,8 +37,8 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.availlang.plugin.build.BuildModule;
-import org.availlang.plugin.core.AvailComponent;
-import org.availlang.plugin.psi.AvailPsiFile;
+import org.availlang.plugin.file.psi.AvailPsiFile;
+import org.availlang.plugin.stream.StreamStyle;
 import org.availlang.plugin.ui.dialogs.ResolvedModuleNameOptionDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,6 +98,7 @@ extends AvailAction
 
 		if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE)
 		{
+			final long start = System.currentTimeMillis();
 			firstThen(
 				project,
 				dialog,
@@ -105,12 +106,25 @@ extends AvailAction
 				{
 					final Iterator<ResolvedModuleName> toBuildList =
 						dialog.getChosenElements().iterator();
+
 					BuildModule.buildModules(
+						false,
 						false,
 						toBuildList,
 						manager,
-						event,
-						() -> done(project, manager, event));
+						getAvailComponent(event),
+						() ->
+						{
+							final long runTime =
+								System.currentTimeMillis() - start;
+							getAvailComponent(event).outputStream
+								.writeText(
+									String.format(
+										"Build complete (%d milliseconds)\n",
+										runTime),
+									StreamStyle.INFO);
+							done(project, manager, event);
+						});
 				});
 		}
 	}
@@ -165,7 +179,7 @@ extends AvailAction
 		final @NotNull ProgressManager manager,
 		final @NotNull AnActionEvent event)
 	{
-		// No implementation
+		// Do nothing
 	}
 
 	@Override

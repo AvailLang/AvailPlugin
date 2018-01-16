@@ -31,7 +31,6 @@
  */
 package org.availlang.plugin.actions;
 
-import com.avail.builder.AvailBuilder;
 import com.avail.builder.AvailBuilder.LoadedModule;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.linking.EntryPoint;
@@ -44,7 +43,8 @@ import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.availlang.plugin.core.AvailComponent;
-import org.availlang.plugin.psi.AvailPsiFile;
+import org.availlang.plugin.file.psi.AvailPsiFile;
+import org.availlang.plugin.stream.StreamStyle;
 import org.availlang.plugin.ui.dialogs.EntryPointOptionDialog;
 import org.availlang.plugin.ui.dialogs.MessageDialog;
 import org.availlang.plugin.ui.dialogs.TextInputDialog;
@@ -78,14 +78,12 @@ extends AvailAction
 	@Override
 	public void actionPerformed (final AnActionEvent event)
 	{
-		final Project project = getProject(event);
+		final AvailComponent component = getAvailComponent(event);
 		final ProgressManager manager = ProgressManager.getInstance();
-		final AvailBuilder builder =
-			AvailComponent.getInstance(project).builder();
 		final ResolvedModuleName resolvedModuleName = this.name;
 		assert resolvedModuleName != null;
 		final EntryPointOptionDialog optionDialog = entryPointOptionDialog(
-			project,
+			component.getProject(),
 			resolvedModuleName,
 			entryPoints);
 		optionDialog.show();
@@ -95,7 +93,7 @@ extends AvailAction
 			final String entryPoint = optionDialog.selectedEntryPoint();
 			final TextInputDialog dialog =
 				new TextInputDialog(
-					project,
+					component.getProject(),
 					"",
 					"Run Entry Point",
 					entryPoint);
@@ -105,7 +103,7 @@ extends AvailAction
 				final String command = dialog.getInputString();
 				if (command != null && !command.isEmpty())
 				{
-					runEntryPoint(event, manager, builder, command);
+					runEntryPoint(component, manager, command);
 				}
 				else
 				{
@@ -141,16 +139,25 @@ extends AvailAction
 		return optionDialog;
 	}
 
+	/**
+	 * Run the provided entry point.
+	 *
+	 * @param component
+	 *        The {@link AvailComponent} for the current {@link Project}.
+	 * @param manager
+	 *        The {@link ProgressManager} to report progress to the user.
+	 * @param command
+	 *        The Avail {@link EntryPoint} to run.
+	 */
 	@SuppressWarnings("WeakerAccess")
 	public static void runEntryPoint (
-		final @NotNull AnActionEvent event,
+		final @NotNull AvailComponent component,
 		final @NotNull ProgressManager manager,
-		final @NotNull AvailBuilder builder,
 		final @NotNull String command)
 	{
 		manager.runProcessWithProgressAsynchronously(
 			new Backgroundable(
-				event.getProject(),
+				component.getProject(),
 				"Running: " + command,
 				false)
 			{
@@ -162,8 +169,10 @@ extends AvailAction
 						(ProgressWindow) progress;
 					window.setTitle("Running: " + command);
 					window.setIndeterminate(true);
+					component.outputStream
+						.writeText(command + "\n", StreamStyle.COMMAND);
 					final Semaphore done = new Semaphore(0);
-					builder.attemptCommand(
+					component.builder().attemptCommand(
 						command,
 						(commands, proceed) ->
 						{
@@ -181,7 +190,7 @@ extends AvailAction
 					done.acquireUninterruptibly();
 				}
 			},
-			new ProgressWindow(true, event.getProject()));
+			new ProgressWindow(true, component.getProject()));
 	}
 
 	@Override

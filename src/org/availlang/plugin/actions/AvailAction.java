@@ -30,12 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package org.availlang.plugin.actions;
+import com.avail.utility.Nulls;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
-import org.availlang.plugin.psi.AvailPsiFile;
+import org.availlang.plugin.core.AvailComponent;
+import org.availlang.plugin.file.psi.AvailPsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +56,18 @@ extends AnAction
 	 * The {@link AnActionEvent} that triggered this {@link AvailAction}.
 	 */
 	private @Nullable AnActionEvent event;
+
+	/**
+	 * Answer the {@link AnActionEvent} that triggered this {@link AvailAction}.
+	 *
+	 * @return An {@code AnActionEvent}.
+	 */
+	public @NotNull AnActionEvent getEvent ()
+	{
+		return Nulls.stripNull(
+			event,
+			"AvailAction.event should be populated if calling this");
+	}
 
 	/**
 	 * Answer the {@link Icon} associated with this action.
@@ -75,12 +89,34 @@ extends AnAction
 	protected @NotNull Project getProject (final @NotNull AnActionEvent event)
 	{
 		final Project project = event.getProject();
-		assert project != null : String.format(
+		return Nulls.stripNull(
+			project,
+			String.format(
 			"%s performed received AnActionEvent, %s, "
 				+ "that did not have a Project",
 			getClass().getSimpleName(),
-			event.getPresentation());
-		return project;
+			event.getPresentation()));
+	}
+
+	/**
+	 * Answer the {@link Project} for the given {@link AnActionEvent}.
+	 *
+	 * @param event
+	 *        The {@code AnActionEvent} that provides the {@code Project}.
+	 * @return A {@code Project}.
+	 */
+	protected @NotNull AvailComponent getAvailComponent (
+		final @NotNull AnActionEvent event)
+	{
+		final AvailComponent component =
+			getProject(event).getComponent(AvailComponent.class);
+		return Nulls.stripNull(
+			component,
+			String.format(
+			"%s performed received AnActionEvent, %s, "
+				+ "that did not have a Project",
+			getClass().getSimpleName(),
+			event.getPresentation()));
 	}
 
 	/**

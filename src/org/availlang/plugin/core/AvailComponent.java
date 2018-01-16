@@ -43,6 +43,7 @@ import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey;
 import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation0;
+import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.components.ProjectComponent;
@@ -56,7 +57,8 @@ import org.availlang.plugin.configuration.AvailPluginConfiguration;
 import org.availlang.plugin.core.utility.ModuleEntryPoints;
 import org.availlang.plugin.exceptions.AvailPluginException;
 import org.availlang.plugin.exceptions.ConfigurationException;
-import org.availlang.plugin.psi.AvailPsiFile;
+import org.availlang.plugin.file.psi.AvailPsiFile;
+import org.availlang.plugin.stream.AvailPluginTextStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -125,6 +127,32 @@ implements ProjectComponent
 	public final @NotNull AvailPluginConfiguration configuration;
 
 	/**
+	 * The {@link ConsoleViewImpl} that is the {@link JPanel} of the Avail
+	 * console.
+	 */
+	private ConsoleViewImpl consoleView;
+
+	/**
+	 * Set the {@link #consoleView}.
+	 *
+	 * @param consoleView
+	 *        The {@link ConsoleViewImpl} that is the {@link JPanel} of the
+	 *        Avail console.
+	 */
+	public void setConsoleView (final @NotNull ConsoleViewImpl consoleView)
+	{
+		this.consoleView = consoleView;
+		outputStream.setConsoleView(consoleView);
+	}
+
+	/**
+	 * The {@link AvailPluginTextStream} that outputs all Avail data.
+	 */
+	public final @NotNull
+	AvailPluginTextStream outputStream =
+		new AvailPluginTextStream(this);
+
+	/**
 	 * The map of {@link ModuleRoot} {@linkplain ModuleRoot#name name} to the
 	 * {@code ModuleRoot} for the {@code ModuleRoots} being developed in the
 	 * active project.
@@ -137,14 +165,11 @@ implements ProjectComponent
 	 *
 	 * @param rootName
 	 *        The name of the {@code ModuleRoot} to clear.
-	 * @param event
-	 *        The {@link AnActionEvent} that prompted this clearing.
 	 * @param onSuccess
 	 *        The {@link Continuation0} to run after clearing the repository.
 	 */
 	public void clearRepository (
 		final @NotNull String rootName,
-		final @NotNull AnActionEvent event,
 		final @NotNull Continuation0 onSuccess)
 	{
 		final ModuleRoot root = moduleRootMap.getOrDefault(rootName, null);
@@ -156,7 +181,7 @@ implements ProjectComponent
 		}
 		else
 		{
-			ClearRepo.clearRepository(root, event, onSuccess);
+			ClearRepo.clearRepository(root, this, onSuccess);
 		}
 	}
 
@@ -181,7 +206,7 @@ implements ProjectComponent
 		}
 		else
 		{
-			clearNextRepository(roots, event, onSuccess);
+			clearNextRepository(roots, onSuccess);
 		}
 	}
 
@@ -202,11 +227,13 @@ implements ProjectComponent
 			return;
 		}
 		buildAllRoots(
+			true,
 			sdkRootMap.values().iterator(),
 			new DummyEvent());
 	}
 
 	private void buildAllRoots (
+		final boolean startInBackground,
 		final @NotNull Iterator<ModuleRoot> roots,
 		final @NotNull AnActionEvent event)
 	{
@@ -217,10 +244,11 @@ implements ProjectComponent
 		final ModuleRoot root = roots.next();
 		BuildModule.buildModules(
 			true,
+			startInBackground,
 			topLevelResolvedNames(root).iterator(),
 			ProgressManager.getInstance(),
-			event,
-			() -> buildAllRoots(roots, event));
+			this,
+			() -> buildAllRoots(startInBackground, roots, event));
 	}
 
 	/**
@@ -230,24 +258,21 @@ implements ProjectComponent
 	 *
 	 * @param roots
 	 *        An {@link Iterator} containing the roots to clear.
-	 * @param event
-	 *        The {@link AnActionEvent} that prompted this clearing.
 	 * @param onSuccess
 	 *        The {@code Continuation0} to run after clearing the repository.
 	 */
 	private void clearNextRepository (
 		final @NotNull Iterator<ModuleRoot> roots,
-		final @NotNull AnActionEvent event,
 		final @NotNull Continuation0 onSuccess)
 	{
 		ClearRepo.clearRepository(
 			roots.next(),
-			event,
+			this,
 			() ->
 			{
 				if (roots.hasNext())
 				{
-					clearNextRepository(roots, event, onSuccess);
+					clearNextRepository(roots, onSuccess);
 				}
 				else
 				{
@@ -283,7 +308,7 @@ implements ProjectComponent
 	 *
 	 * // TODO [RAA] may use this in another view
 	 */
-	public final Tree moduleTree = new Tree(
+	private final Tree moduleTree = new Tree(
 		new DefaultMutableTreeNode("(packages hidden root)"));
 
 	/**
@@ -377,6 +402,7 @@ implements ProjectComponent
 	 *
 	 * @return A {@code String} {@link List} of available entry points.
 	 */
+	@SuppressWarnings("WeakerAccess")
 	public @NotNull List<LoadedModule> loadedModules ()
 	{
 		return builder().loadedModulesCopy();
@@ -469,11 +495,6 @@ implements ProjectComponent
 		resolver().clearCache();
 		final TreeNode modules = newModuleTree();
 		moduleTree.setModel(new DefaultTreeModel(modules));
-//		for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
-//		{
-//			moduleTree.expandRow(i);
-//		}
-
 		refreshModuleEntryPoints();
 	}
 
@@ -579,7 +600,7 @@ implements ProjectComponent
 					isRoot.value = false;
 					assert stack.size() == 1;
 					final ModuleRootNode node =
-						new ModuleRootNode(builder, moduleRoot);
+						new ModuleRootNode(builder(), moduleRoot);
 					parentNode.add(node);
 					stack.addFirst(node);
 					return FileVisitResult.CONTINUE;
@@ -755,9 +776,17 @@ implements ProjectComponent
 		{
 			final ModuleRoots roots = new ModuleRoots("");
 			configuration.sdkMap.forEach((name, sdk) ->
-				roots.addRoot(sdk.moduleRoot()));
+			{
+				final ModuleRoot mr = sdk.moduleRoot();
+				roots.addRoot(mr);
+				sdkRootMap.put(name, mr);
+			});
 			configuration.rootMap.forEach((name, root) ->
-				roots.addRoot(root.moduleRoot()));
+			{
+				final ModuleRoot mr = root.moduleRoot();
+				roots.addRoot(mr);
+				moduleRootMap.put(name, mr);
+			});
 			this.resolver = new ModuleNameResolver(roots);
 			configuration.renameMap.forEach((source, rename) ->
 				this.resolver.addRenameRule(source, rename.target));
@@ -771,8 +800,10 @@ implements ProjectComponent
 		}
 		catch (final Exception e)
 		{
-			new AvailPluginException("AvailComponent failed to initialize", e)
-				.errorDialog();
+			final AvailPluginException ex =
+				new AvailPluginException(
+					"AvailComponent failed to initialize", e);
+			ex.errorDialog();
 		}
 	}
 

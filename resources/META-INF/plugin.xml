@@ -29,6 +29,8 @@
     <lang.parserDefinition language="Avail" implementationClass="org.availlang.plugin.parser.AvailParserDefinition"/>
     <moduleType id="AVAIL_MODULE_TYPE" implementationClass="org.availlang.plugin.file.module.AvailModuleType"/>
     <projectStructureDetector implementation="org.availlang.plugin.file.module.AvailProjectStructureDetector" />
+    <toolWindow id="Avail_Console" secondary="true" icon="/icons/AvailHammer.png" anchor="bottom"
+    factoryClass="org.availlang.plugin.ui.console.AvailToolWindowFactory"/>
   </extensions>
 
   <project-components>
@@ -42,15 +44,14 @@
   </project-components>
 
   <actions>
-    <!--<action id="org.availlang.plugin.build.BuildModule"-->
-            <!--class="org.availlang.plugin.build.BuildModule"-->
-            <!--text="Build Avail Module"-->
-            <!--description="The Avail build action for a module">-->
-      <!--<add-to-group group-id="ProjectViewPopupMenuRunGroup" anchor="last"/>-->
-      <!--<add-to-group group-id="EditorPopupMenu"/>-->
-      <!--<add-to-group group-id="EditorTabPopupMenu"/>-->
-      <!--<add-to-group group-id="ConsoleEditorPopupMenu"/>-->
-    <!--</action>-->
+    <!-- Create a new Avail file action -->
+    <action id="org.availlang.plugin.actions.CreateAvailFile"
+            class="org.availlang.plugin.actions.CreateAvailFile"
+            text="New File Avail">
+      <add-to-group group-id="NewGroup" anchor="first"/>
+    </action>
+
+    <!-- Build Avail Modules and Run Avail Entry points  -->
     <group id="AvailModuleGroupActions"
            popup="false"
            description="Interact with module">
@@ -84,6 +85,7 @@
       <separator/>
     </group>
 
+    <!-- Build and Run menus additions -->
     <group id="AvailModuleBuildGroup"
            popup="false"
            description="Interact with module">

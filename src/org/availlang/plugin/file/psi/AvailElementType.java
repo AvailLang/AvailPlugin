@@ -1,5 +1,5 @@
 /*
- * BuildModuleRoot.java
+ * AvailElementType.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,58 +29,27 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package org.availlang.plugin.build;
-import com.avail.builder.ModuleRoot;
-import com.avail.builder.ResolvedModuleName;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.progress.ProgressManager;
-import org.availlang.plugin.actions.AvailAction;
-import org.availlang.plugin.file.psi.AvailPsiFile;
+package org.availlang.plugin.file.psi;
+import com.intellij.psi.tree.IElementType;
+import org.availlang.plugin.language.AvailLanguage;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
-
 /**
- * A {@code BuildModuleRoot} is {@link AnAction} that causes a {@link
- * ModuleRoot} to build.
+ * An {@code AvailElementType} is an {@link IElementType}.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class BuildModuleRoot
-extends AvailAction
+public class AvailElementType extends IElementType
 {
 	/**
-	 * The top leve {@link ModuleRoot}.
-	 */
-	private final @NotNull ResolvedModuleName resolvedModuleName;
-
-	/**
-	 * Construct a {@link BuildModuleRoot}.
+	 * Construct a {@link AvailElementType}.
 	 *
-	 * @param resolvedModuleName
-	 *        The {@link ResolvedModuleName} of the {@link ModuleRoot} to build.
+	 * @param debugName
+	 *        The name of the element type, used for debugging purposes.
 	 */
-	public BuildModuleRoot (
-		final @NotNull ResolvedModuleName resolvedModuleName)
+	public AvailElementType (
+		final @NotNull String debugName)
 	{
-		this.resolvedModuleName = resolvedModuleName;
-	}
-
-	@Override
-	public void actionPerformed (final AnActionEvent event)
-	{
-		BuildModule.build(
-			false, false,
-			getAvailComponent(event),
-			ProgressManager.getInstance(),
-			resolvedModuleName);
-	}
-
-	@Override
-	protected @NotNull String customMenuItem (
-		final @Nullable AvailPsiFile psiFile)
-	{
-		return  resolvedModuleName.localName();
+		super(debugName, AvailLanguage.soleInstance);
 	}
 }
