@@ -305,8 +305,6 @@ implements ProjectComponent
 
 	/**
 	 * The {@linkplain ModuleDescriptor module} {@linkplain JTree tree}.
-	 *
-	 * // TODO [RAA] may use this in another view
 	 */
 	private final Tree moduleTree = new Tree(
 		new DefaultMutableTreeNode("(packages hidden root)"));
@@ -805,6 +803,27 @@ implements ProjectComponent
 					"AvailComponent failed to initialize", e);
 			ex.errorDialog();
 		}
+	}
+
+	@Override
+	public void projectClosed ()
+	{
+		sdkRootMap.forEach((name, root) ->
+		{
+			final IndexedRepositoryManager repo = root.repository();
+			if (repo != null)
+			{
+				repo.close();
+			}
+		});
+		moduleRootMap.forEach((name, root) ->
+		{
+			final IndexedRepositoryManager repo = root.repository();
+			if (repo != null)
+			{
+				repo.close();
+			}
+		});
 	}
 
 	@Override
