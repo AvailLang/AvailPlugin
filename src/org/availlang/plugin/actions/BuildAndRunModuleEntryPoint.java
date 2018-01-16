@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package org.availlang.plugin.actions;
-import com.avail.builder.AvailBuilder;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.linking.EntryPoint;
 import com.avail.utility.evaluation.Continuation0;
@@ -114,27 +113,35 @@ extends DisplayAndBuildModules
 			if (epd.getExitCode() == DialogWrapper.OK_EXIT_CODE)
 			{
 				final String entryPoint = epd.selectedEntryPoint();
-				final TextInputDialog textDialog =
-					new TextInputDialog(
-						project,
-						"",
-						"Run Entry Point",
-						entryPoint);
-				textDialog.show();
-				if (textDialog.getExitCode() == DialogWrapper.OK_EXIT_CODE)
+				if (entryPoint != null)
 				{
-					final String command = textDialog.getInputString();
-					if (command != null && !command.isEmpty())
+					final TextInputDialog textDialog =
+						new TextInputDialog(
+							project,
+							"",
+							"Run Entry Point",
+							entryPoint);
+					textDialog.show();
+					if (textDialog.getExitCode() == DialogWrapper.OK_EXIT_CODE)
 					{
-						entryPointCommand = command;
-						next.value();
+						final String command = textDialog.getInputString();
+						if (command != null && !command.isEmpty())
+						{
+							entryPointCommand = command;
+							next.value();
+						}
+						else
+						{
+							new MessageDialog(
+								"ERROR", "No entry point entered")
+								.show();
+						}
 					}
-					else
-					{
-						new MessageDialog(
-								"ERROR","No entry point entered")
-							.show();
-					}
+				}
+				else
+				{
+					new MessageDialog(
+						"ERROR", "Nothing Selected!").show();
 				}
 			}
 		}

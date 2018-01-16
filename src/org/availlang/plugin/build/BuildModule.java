@@ -45,6 +45,7 @@ import org.availlang.plugin.actions.AvailAction;
 import org.availlang.plugin.core.AvailComponent;
 import org.availlang.plugin.language.AvailLanguage;
 import org.availlang.plugin.file.psi.AvailPsiFile;
+import org.availlang.plugin.stream.StreamStyle;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -101,13 +102,24 @@ extends AvailAction
 		final @NotNull ProgressManager manager,
 		final @NotNull ResolvedModuleName resolvedModuleName)
 	{
+		final long start = System.currentTimeMillis();
 		build(
 			loadingOnly,
 			component,
 			manager,
 			startInBackground,
 			resolvedModuleName,
-			() -> {});
+			() ->
+			{
+				final long runTime =
+					System.currentTimeMillis() - start;
+				component.outputStream
+					.writeText(
+						String.format(
+							"Build complete (%d milliseconds)\n",
+							runTime),
+						StreamStyle.INFO);
+			});
 	}
 
 	/**
@@ -143,7 +155,7 @@ extends AvailAction
 			final ResolvedModuleName name = toBuildIterator.next();
 			if (component.builder().getLoadedModule(name) == null)
 			{
-				BuildModule.build(
+				build(
 					loadingOnly,
 					component,
 					manager,

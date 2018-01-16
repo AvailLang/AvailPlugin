@@ -68,11 +68,9 @@ extends ChooseElementsDialog<String>
 	 *
 	 * @return A {@code String}.
 	 */
-	public @NotNull String selectedEntryPoint ()
+	public @Nullable String selectedEntryPoint ()
 	{
-		final String item = myChooser.getSelectedElement();
-		assert item != null;
-		return item;
+		return myChooser.getSelectedElement();
 	}
 
 	/**
