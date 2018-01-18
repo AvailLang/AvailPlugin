@@ -78,14 +78,38 @@ public final class AvailIcon
 	/**
 	 * The {@link Icon} used to represent an {@link AvailFileType}.
 	 */
-	public static final @NotNull Icon availFileIcon =
+	public static final @NotNull Icon availIcon =
+		getIcon("AvailBasic.png");
+
+	/**
+	 * The {@link Icon} used to represent an {@link AvailFileType}.
+	 */
+	public static final @NotNull Icon inTree =
 		getIcon("ModuleInTree.png");
+
+	/**
+	 * The {@link Icon} used to represent an {@link AvailFileType}.
+	 */
+	public static final @NotNull Icon availFileIcon =
+		getIcon("AvailFileType.png");
 
 	/**
 	 * The {@link Icon} used to represent an {@link AvailRepoFileType}.
 	 */
 	public static final @NotNull Icon availRepoFileIcon =
+		getIcon("AvailRepo.png");;
+
+	/**
+	 * The {@link Icon} used to represent an {@link AvailRepoFileType}.
+	 */
+	public static final @NotNull Icon availModuleIcon =
 		getIcon("AvailHammer.png");
+
+	/**
+	 * The {@link Icon} used to represent an {@link AvailRepoFileType}.
+	 */
+	public static final @NotNull Icon availEntryPointIcon =
+		getIcon("AvailEntryPoint.png");;
 
 	/**
 	 * The {@link Icon} used to represent an {@link AvailDirectoryFileType}.

@@ -1,5 +1,5 @@
 /*
- * AvailModuleType.java
+ * EntryPointConfigurationType.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,67 +29,71 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package org.availlang.plugin.file.module;
 
-import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.module.ModuleTypeManager;
+package org.availlang.plugin.execution;
+import com.avail.linking.EntryPoint;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.ConfigurationType;
 import org.availlang.plugin.icons.AvailIcon;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 /**
- * An {@link AvailModuleType} is a {@link ModuleType} specific to Avail.
+ * An {@code EntryPointConfigurationType} is a {@link ConfigurationType} for
+ * configuring Avail {@link EntryPoint}s.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class AvailModuleType extends ModuleType<AvailModuleBuilder>
+public class EntryPointConfigurationType
+implements ConfigurationType
 {
 	/**
-	 * The identifier for the {@link AvailModuleType}.
+	 * A single-element array containing one {@link
+	 * EntryPointConfigurationFactory}.
 	 */
-	private static final String ID = "AVAIL_MODULE_TYPE";
+	private final @NotNull ConfigurationFactory[] factories =
+		new ConfigurationFactory[1];
+
+	@Nls
+	@Override
+	public String getDisplayName ()
+	{
+		return "Avail Entry Point";
+	}
+
+	@Nls
+	@Override
+	public String getConfigurationTypeDescription ()
+	{
+		return "Run an Avail Entry Point";
+	}
+
+	@Override
+	public Icon getIcon ()
+	{
+		return AvailIcon.availEntryPointIcon;
+	}
+
+	@NotNull
+	@Override
+	public String getId ()
+	{
+		return "Avail Entry Point";
+	}
+
+	@Override
+	public ConfigurationFactory[] getConfigurationFactories ()
+	{
+		return factories;
+	}
 
 	/**
-	 * Answer an instance of {@link AvailModuleType} from the {@link
-	 * ModuleTypeManager}.
-	 *
-	 * @return A {@code AvailModuleType}.
+	 * Construct an {@link EntryPointConfigurationFactory}.
 	 */
-	public static AvailModuleType getInstance ()
+	public EntryPointConfigurationType ()
 	{
-		return (AvailModuleType) ModuleTypeManager.getInstance().findByID(ID);
-	}
-
-	@Override
-	public @NotNull AvailModuleBuilder createModuleBuilder ()
-	{
-		return new AvailModuleBuilder();
-	}
-
-	@Override
-	public @NotNull String getName ()
-	{
-		return "Avail";
-	}
-
-	@Override
-	public @NotNull String getDescription ()
-	{
-		return "An Avail project";
-	}
-
-	@Override
-	public Icon getNodeIcon (final boolean isOpened)
-	{
-		return AvailIcon.availModuleIcon;
-	}
-
-	/**
-	 * Construct a {@link AvailModuleType}.
-	 */
-	public AvailModuleType ()
-	{
-		super(ID);
+		this.factories[0] = new EntryPointConfigurationFactory(this);
 	}
 }

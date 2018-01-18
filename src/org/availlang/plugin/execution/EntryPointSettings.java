@@ -1,5 +1,5 @@
 /*
- * AvailModuleType.java
+ * EntryPointSettings.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,67 +29,31 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package org.availlang.plugin.file.module;
 
-import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.module.ModuleTypeManager;
-import org.availlang.plugin.icons.AvailIcon;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+package org.availlang.plugin.execution;
+import com.intellij.execution.configurations.RunnerSettings;
+import com.intellij.openapi.util.InvalidDataException;
+import com.intellij.openapi.util.WriteExternalException;
+import org.jdom.Element;
 
 /**
- * An {@link AvailModuleType} is a {@link ModuleType} specific to Avail.
+ * A {@code EntryPointSettings} is TODO: Document this!
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class AvailModuleType extends ModuleType<AvailModuleBuilder>
+public class EntryPointSettings
+implements RunnerSettings
 {
-	/**
-	 * The identifier for the {@link AvailModuleType}.
-	 */
-	private static final String ID = "AVAIL_MODULE_TYPE";
-
-	/**
-	 * Answer an instance of {@link AvailModuleType} from the {@link
-	 * ModuleTypeManager}.
-	 *
-	 * @return A {@code AvailModuleType}.
-	 */
-	public static AvailModuleType getInstance ()
+	@Override
+	public void readExternal (final Element element) throws InvalidDataException
 	{
-		return (AvailModuleType) ModuleTypeManager.getInstance().findByID(ID);
+		// Do nothing
 	}
 
 	@Override
-	public @NotNull AvailModuleBuilder createModuleBuilder ()
+	public void writeExternal (final Element element)
+	throws WriteExternalException
 	{
-		return new AvailModuleBuilder();
-	}
-
-	@Override
-	public @NotNull String getName ()
-	{
-		return "Avail";
-	}
-
-	@Override
-	public @NotNull String getDescription ()
-	{
-		return "An Avail project";
-	}
-
-	@Override
-	public Icon getNodeIcon (final boolean isOpened)
-	{
-		return AvailIcon.availModuleIcon;
-	}
-
-	/**
-	 * Construct a {@link AvailModuleType}.
-	 */
-	public AvailModuleType ()
-	{
-		super(ID);
+		// Do nothing
 	}
 }

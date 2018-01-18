@@ -57,6 +57,7 @@ import org.availlang.plugin.configuration.AvailPluginConfiguration;
 import org.availlang.plugin.core.utility.ModuleEntryPoints;
 import org.availlang.plugin.exceptions.AvailPluginException;
 import org.availlang.plugin.exceptions.ConfigurationException;
+import org.availlang.plugin.execution.EntryPointExecutor;
 import org.availlang.plugin.file.psi.AvailPsiFile;
 import org.availlang.plugin.stream.AvailPluginTextStream;
 import org.jetbrains.annotations.NotNull;
@@ -125,6 +126,9 @@ implements ProjectComponent
 	 * The {@link AvailPluginConfiguration} for this {@link Project}.
 	 */
 	public final @NotNull AvailPluginConfiguration configuration;
+
+	public final @NotNull EntryPointExecutor executor =
+		new EntryPointExecutor();
 
 	/**
 	 * The {@link ConsoleViewImpl} that is the {@link JPanel} of the Avail

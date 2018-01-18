@@ -1,5 +1,5 @@
 /*
- * AvailModuleType.java
+ * EntryPointRunConfiguration.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,67 +29,61 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package org.availlang.plugin.file.module;
 
-import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.module.ModuleTypeManager;
-import org.availlang.plugin.icons.AvailIcon;
+package org.availlang.plugin.execution;
+import com.avail.linking.EntryPoint;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.Executor;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.RunConfigurationBase;
+import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.options.SettingsEditor;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * An {@link AvailModuleType} is a {@link ModuleType} specific to Avail.
+ * An {@code EntryPointRunConfiguration} is a {@link RunConfigurationBase} that
+ * provides the actual settings for running an Avail {@link EntryPoint}.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class AvailModuleType extends ModuleType<AvailModuleBuilder>
+public class EntryPointRunConfiguration
+extends RunConfigurationBase
 {
-	/**
-	 * The identifier for the {@link AvailModuleType}.
-	 */
-	private static final String ID = "AVAIL_MODULE_TYPE";
+	@Override
+	public @NotNull 
+	SettingsEditor<? extends RunConfiguration> getConfigurationEditor ()
+	{
+		return new EntryPointConfigurationsSettingsEditor(getProject());
+	}
+	
+	@Override
+	public @Nullable RunProfileState getState (
+		final @NotNull Executor executor,
+		final @NotNull ExecutionEnvironment environment)
+	throws ExecutionException
+	{
+		return null;
+	}
 
 	/**
-	 * Answer an instance of {@link AvailModuleType} from the {@link
-	 * ModuleTypeManager}.
+	 * Construct an {@link EntryPointRunConfiguration}.
 	 *
-	 * @return A {@code AvailModuleType}.
+	 * @param project
+	 *        The {@link Project} this is for.
+	 * @param factory
+	 *        The {@link ConfigurationFactory} used to create configurations.
+	 * @param name
+	 *        The name of the configuration.
 	 */
-	public static AvailModuleType getInstance ()
+	public EntryPointRunConfiguration (
+		final @NotNull Project project,
+		final @NotNull ConfigurationFactory factory,
+		final String name)
 	{
-		return (AvailModuleType) ModuleTypeManager.getInstance().findByID(ID);
-	}
-
-	@Override
-	public @NotNull AvailModuleBuilder createModuleBuilder ()
-	{
-		return new AvailModuleBuilder();
-	}
-
-	@Override
-	public @NotNull String getName ()
-	{
-		return "Avail";
-	}
-
-	@Override
-	public @NotNull String getDescription ()
-	{
-		return "An Avail project";
-	}
-
-	@Override
-	public Icon getNodeIcon (final boolean isOpened)
-	{
-		return AvailIcon.availModuleIcon;
-	}
-
-	/**
-	 * Construct a {@link AvailModuleType}.
-	 */
-	public AvailModuleType ()
-	{
-		super(ID);
+		super(project, factory, name);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * AvailModuleType.java
+ * EntryPointProgramRunner.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,67 +29,50 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package org.availlang.plugin.file.module;
 
-import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.module.ModuleTypeManager;
-import org.availlang.plugin.icons.AvailIcon;
+package org.availlang.plugin.execution;
+import com.avail.linking.EntryPoint;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.configurations.RunProfile;
+import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.runners.BaseProgramRunner;
+import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * An {@link AvailModuleType} is a {@link ModuleType} specific to Avail.
+ * A {@code EntryPointProgramRunner} is a {@link BaseProgramRunner} used for
+ * running {@link EntryPoint}s.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class AvailModuleType extends ModuleType<AvailModuleBuilder>
+public class EntryPointProgramRunner
+extends BaseProgramRunner<EntryPointSettings>
 {
-	/**
-	 * The identifier for the {@link AvailModuleType}.
-	 */
-	private static final String ID = "AVAIL_MODULE_TYPE";
-
-	/**
-	 * Answer an instance of {@link AvailModuleType} from the {@link
-	 * ModuleTypeManager}.
-	 *
-	 * @return A {@code AvailModuleType}.
-	 */
-	public static AvailModuleType getInstance ()
+	@Override
+	protected void execute (
+		final @NotNull ExecutionEnvironment environment,
+		final @Nullable Callback callback,
+		final @NotNull RunProfileState state) throws ExecutionException
 	{
-		return (AvailModuleType) ModuleTypeManager.getInstance().findByID(ID);
+		UIUtil.invokeLaterIfNeeded(() ->
+		{
+			// TODO run the entry point
+		});
 	}
 
 	@Override
-	public @NotNull AvailModuleBuilder createModuleBuilder ()
+	public @NotNull String getRunnerId ()
 	{
-		return new AvailModuleBuilder();
+		return "Entry Point";
 	}
 
 	@Override
-	public @NotNull String getName ()
+	public boolean canRun (
+		final @NotNull String executorId,
+		final @NotNull RunProfile profile)
 	{
-		return "Avail";
-	}
-
-	@Override
-	public @NotNull String getDescription ()
-	{
-		return "An Avail project";
-	}
-
-	@Override
-	public Icon getNodeIcon (final boolean isOpened)
-	{
-		return AvailIcon.availModuleIcon;
-	}
-
-	/**
-	 * Construct a {@link AvailModuleType}.
-	 */
-	public AvailModuleType ()
-	{
-		super(ID);
+		return true;
 	}
 }

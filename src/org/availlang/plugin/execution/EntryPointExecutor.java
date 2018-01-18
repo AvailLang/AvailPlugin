@@ -1,5 +1,5 @@
 /*
- * AvailModuleType.java
+ * EntryPointExecutor.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,67 +29,87 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package org.availlang.plugin.file.module;
 
-import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.module.ModuleTypeManager;
-import org.availlang.plugin.icons.AvailIcon;
+package org.availlang.plugin.execution;
+
+import com.intellij.execution.ExecutionBundle;
+import com.intellij.execution.Executor;
+import com.intellij.execution.ExecutorRegistry;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.wm.ToolWindowId;
+import com.intellij.ui.UIBundle;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 /**
- * An {@link AvailModuleType} is a {@link ModuleType} specific to Avail.
  *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class AvailModuleType extends ModuleType<AvailModuleBuilder>
+public class EntryPointExecutor
+extends Executor
 {
-	/**
-	 * The identifier for the {@link AvailModuleType}.
-	 */
-	private static final String ID = "AVAIL_MODULE_TYPE";
+  public static final @NotNull String executorId = "avail.console.entrypoint";
 
-	/**
-	 * Answer an instance of {@link AvailModuleType} from the {@link
-	 * ModuleTypeManager}.
-	 *
-	 * @return A {@code AvailModuleType}.
-	 */
-	public static AvailModuleType getInstance ()
-	{
-		return (AvailModuleType) ModuleTypeManager.getInstance().findByID(ID);
-	}
+  @Override
+  @NotNull
+  public String getStartActionText()
+  {
+    return "Run";
+  }
 
-	@Override
-	public @NotNull AvailModuleBuilder createModuleBuilder ()
-	{
-		return new AvailModuleBuilder();
-	}
+  @Override
+  public String getToolWindowId()
+  {
+    return executorId;
+  }
 
-	@Override
-	public @NotNull String getName ()
-	{
-		return "Avail";
-	}
+  @Override
+  public Icon getToolWindowIcon()
+  {
+    return AllIcons.Toolwindows.ToolWindowRun;
+  }
 
-	@Override
-	public @NotNull String getDescription ()
-	{
-		return "An Avail project";
-	}
+  @Override
+  @NotNull
+  public Icon getIcon()
+  {
+    return AllIcons.Actions.Execute;
+  }
 
-	@Override
-	public Icon getNodeIcon (final boolean isOpened)
-	{
-		return AvailIcon.availModuleIcon;
-	}
+  @Override
+  public Icon getDisabledIcon()
+  {
+    return AllIcons.Process.DisabledRun;
+  }
 
-	/**
-	 * Construct a {@link AvailModuleType}.
-	 */
-	public AvailModuleType ()
-	{
-		super(ID);
-	}
+  @Override
+  public String getDescription()
+  {
+    return "Run selected entry point";
+  }
+
+  @Override
+  public @NotNull String getActionName()
+  {
+    return "Run";
+  }
+
+  @Override
+  public @NotNull String getId()
+  {
+    return executorId;
+  }
+
+  @Override
+  public String getContextActionId()
+  {
+    return "RunEntryPoint";
+  }
+
+  @Override
+  public String getHelpId()
+  {
+    return "ideaInterface.run";
+  }
 }
