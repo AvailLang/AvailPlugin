@@ -31,6 +31,7 @@
  */
 
 package org.availlang.plugin.execution;
+import com.avail.utility.Mutable;
 import com.avail.utility.Nulls;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SettingsEditor;
@@ -98,33 +99,40 @@ extends SettingsEditor<EntryPointRunConfiguration>
 		final JComboBox<String> rootBox = roots.getComponent();
 		final JComboBox<String> moduleBox = module.getComponent();
 		final JComboBox<String> entryPointBox = entryPoint.getComponent();
-		rootNames.forEach(rootBox::addItem);
 		final List<ModuleEntryPoints> moduleEntryPoints = new ArrayList<>();
+		final Mutable<Boolean> allowModuleBoxListenerToFire = new Mutable<>(true);
 		rootBox.addActionListener(event ->
 		{
+			allowModuleBoxListenerToFire.value = false;
 			moduleEntryPoints.clear();
 			moduleEntryPoints.addAll(
 				component.moduleEntryPoints(
 					(String) rootBox.getSelectedItem()));
 			moduleEntryPoints.sort((a,b) -> a.resolvedModuleName().localName()
 				.compareTo(b.resolvedModuleName().localName()));
+			moduleBox.removeAllItems();
 			moduleEntryPoints.forEach(m ->
 				moduleBox.addItem(m.resolvedModuleName().localName()));
+			final int index = moduleBox.getSelectedIndex();
+			selectedModuleEntryPoint = moduleEntryPoints.get(index);
+			entryPointBox.removeAllItems();
+			selectedModuleEntryPoint.entryPoints()
+				.forEach(entryPointBox::addItem);
+			allowModuleBoxListenerToFire.value = true;
 		});
 
 		moduleBox.addActionListener(mod ->
 		{
-			final int index = moduleBox.getSelectedIndex();
-			selectedModuleEntryPoint = moduleEntryPoints.get(index);
-			moduleBox.removeAllItems();
-			moduleBox.addActionListener(ev ->
+			if (allowModuleBoxListenerToFire.value)
 			{
+				final int index = moduleBox.getSelectedIndex();
+				selectedModuleEntryPoint = moduleEntryPoints.get(index);
 				entryPointBox.removeAllItems();
 				selectedModuleEntryPoint.entryPoints()
 					.forEach(entryPointBox::addItem);
-			});
+			}
 		});
-
+		rootNames.forEach(rootBox::addItem);
 		return mainPanel;
 	}
 

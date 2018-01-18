@@ -97,7 +97,7 @@ public final class AvailIcon
 	 * The {@link Icon} used to represent an {@link AvailRepoFileType}.
 	 */
 	public static final @NotNull Icon availRepoFileIcon =
-		getIcon("AvailRepo.png");;
+		getIcon("AvailRepoSDK.png");
 
 	/**
 	 * The {@link Icon} used to represent an {@link AvailRepoFileType}.
