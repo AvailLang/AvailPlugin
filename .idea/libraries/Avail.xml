@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Avail">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/libraries/Avail.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/libraries/Avail.jar!/" />
+      <root url="file://$PROJECT_DIR$/../../Avail/src" />
+      <root url="file://$PROJECT_DIR$/../../Avail/test" />
+    </SOURCES>
+  </library>
+</component>

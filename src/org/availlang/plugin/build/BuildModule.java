@@ -153,7 +153,7 @@ extends AvailAction
 		if (toBuildIterator.hasNext())
 		{
 			final ResolvedModuleName name = toBuildIterator.next();
-			if (component.builder().getLoadedModule(name) == null)
+			if (component.builder.getLoadedModule(name) == null)
 			{
 				build(
 					loadingOnly,
@@ -215,7 +215,7 @@ extends AvailAction
 		final @NotNull ResolvedModuleName resolvedModuleName,
 		final @NotNull Continuation0 onSuccess)
 	{
-		final AvailBuilder builder = component.builder();
+		final AvailBuilder builder = component.builder;
 		final String label = loadingOnly
 			? String.format(
 				"Loading %s",

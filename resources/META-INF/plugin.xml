@@ -31,7 +31,9 @@
     <projectStructureDetector implementation="org.availlang.plugin.file.module.AvailProjectStructureDetector" />
     <toolWindow id="Avail_Console" secondary="true" icon="/icons/AvailHammer.png" anchor="bottom"
     factoryClass="org.availlang.plugin.ui.console.AvailToolWindowFactory"/>
-    <configurationType implementation="org.availlang.plugin.execution.EntryPointConfigurationType" />
+    <configurationType implementation="org.availlang.plugin.process.execution.EntryPointConfigurationType"/>
+    <programRunner implementation="org.availlang.plugin.process.execution.EntryPointProgramRunner"/>
+    <executor implementation="org.availlang.plugin.process.execution.EntryPointExecutor"/>
   </extensions>
 
   <project-components>

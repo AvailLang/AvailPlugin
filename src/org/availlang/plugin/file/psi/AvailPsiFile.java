@@ -90,7 +90,7 @@ extends PsiFileBase
 			final AvailComponent component =
 				AvailComponent.getInstance(getProject());
 			final ModuleNameResolver resolver =
-				component.resolver();
+				component.resolver;
 			final ModuleRoots roots = component.moduleRoots();
 			for (final ModuleRoot root : roots.roots())
 			{

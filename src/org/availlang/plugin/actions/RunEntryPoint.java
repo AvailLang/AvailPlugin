@@ -31,6 +31,7 @@
  */
 package org.availlang.plugin.actions;
 
+import com.avail.builder.AvailBuilder.CompiledCommand;
 import com.avail.builder.AvailBuilder.LoadedModule;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.linking.EntryPoint;
@@ -103,7 +104,11 @@ extends AvailAction
 				final String command = dialog.getInputString();
 				if (command != null && !command.isEmpty())
 				{
-					runEntryPoint(component, manager, command);
+					runEntryPoint(
+						component,
+						manager,
+						resolvedModuleName,
+						command);
 				}
 				else
 				{
@@ -153,13 +158,14 @@ extends AvailAction
 	public static void runEntryPoint (
 		final @NotNull AvailComponent component,
 		final @NotNull ProgressManager manager,
+		final @NotNull ResolvedModuleName resolvedModuleName,
 		final @NotNull String command)
 	{
 		manager.runProcessWithProgressAsynchronously(
 			new Backgroundable(
 				component.getProject(),
 				"Running: " + command,
-				false)
+				true)
 			{
 				@Override
 				public void run (
@@ -169,16 +175,34 @@ extends AvailAction
 						(ProgressWindow) progress;
 					window.setTitle("Running: " + command);
 					window.setIndeterminate(true);
+					window.background();
 					component.outputStream
 						.writeText(command + "\n", StreamStyle.COMMAND);
 					final Semaphore done = new Semaphore(0);
-					component.builder().attemptCommand(
+					component.builder.attemptCommand(
 						command,
 						(commands, proceed) ->
 						{
 							assert proceed != null;
 							assert commands != null;
-							proceed.value(commands.get(0));
+							CompiledCommand c = null;
+							for (final CompiledCommand cc : commands)
+							{
+								if (cc.moduleName.equals(resolvedModuleName))
+								{
+									c = cc;
+									break;
+								}
+							}
+							if (c != null)
+							{
+								proceed.value(c);
+							}
+							else
+							{
+								System.err.println("[Failed] Run: "
+									+ command);
+							}
 						},
 						(result, cleanup) ->
 						{

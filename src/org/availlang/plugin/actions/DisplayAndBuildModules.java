@@ -99,6 +99,8 @@ extends AvailAction
 		if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE)
 		{
 			final long start = System.currentTimeMillis();
+			final ResolvedModuleName resolvedModuleName =
+				dialog.getSelection();
 			firstThen(
 				project,
 				dialog,
@@ -123,7 +125,7 @@ extends AvailAction
 										"Build complete (%d milliseconds)\n",
 										runTime),
 									StreamStyle.INFO);
-							done(project, manager, event);
+							done(project, manager, event, resolvedModuleName);
 						});
 				});
 		}
@@ -177,7 +179,8 @@ extends AvailAction
 	protected void done (
 		final @NotNull Project project,
 		final @NotNull ProgressManager manager,
-		final @NotNull AnActionEvent event)
+		final @NotNull AnActionEvent event,
+		final @NotNull ResolvedModuleName resolvedModuleName)
 	{
 		// Do nothing
 	}

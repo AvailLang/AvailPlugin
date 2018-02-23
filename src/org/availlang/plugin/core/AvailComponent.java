@@ -43,12 +43,14 @@ import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey;
 import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation0;
+import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.tree.IFileElementType;
 import com.intellij.ui.treeStructure.Tree;
 import org.availlang.plugin.actions.events.DummyEvent;
 import org.availlang.plugin.build.BuildModule;
@@ -57,9 +59,9 @@ import org.availlang.plugin.configuration.AvailPluginConfiguration;
 import org.availlang.plugin.core.utility.ModuleEntryPoints;
 import org.availlang.plugin.exceptions.AvailPluginException;
 import org.availlang.plugin.exceptions.ConfigurationException;
-import org.availlang.plugin.execution.EntryPointExecutor;
 import org.availlang.plugin.file.psi.AvailPsiFile;
 import org.availlang.plugin.stream.AvailPluginTextStream;
+import org.availlang.plugin.ui.console.AvailConsole;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -127,9 +129,6 @@ implements ProjectComponent
 	 */
 	public final @NotNull AvailPluginConfiguration configuration;
 
-	public final @NotNull EntryPointExecutor executor =
-		new EntryPointExecutor();
-
 	/**
 	 * The {@link ConsoleViewImpl} that is the {@link JPanel} of the Avail
 	 * console.
@@ -143,7 +142,7 @@ implements ProjectComponent
 	 *        The {@link ConsoleViewImpl} that is the {@link JPanel} of the
 	 *        Avail console.
 	 */
-	public void setConsoleView (final @NotNull ConsoleViewImpl consoleView)
+	public void setConsoleView (final @NotNull AvailConsole consoleView)
 	{
 		this.consoleView = consoleView;
 		outputStream.setConsoleView(consoleView);
@@ -152,8 +151,7 @@ implements ProjectComponent
 	/**
 	 * The {@link AvailPluginTextStream} that outputs all Avail data.
 	 */
-	public final @NotNull
-	AvailPluginTextStream outputStream =
+	public final @NotNull AvailPluginTextStream outputStream =
 		new AvailPluginTextStream(this);
 
 	/**
@@ -288,17 +286,17 @@ implements ProjectComponent
 	/**
 	 * The active {@link ModuleNameResolver}.
 	 */
-	private @Nullable ModuleNameResolver resolver;
+	public final @NotNull ModuleNameResolver resolver;
 
 	/**
 	 * The active {@link AvailRuntime}.
 	 */
-	private @Nullable AvailRuntime runtime;
+	public final @NotNull  AvailRuntime runtime;
 
 	/**
 	 * The active {@link AvailBuilder}.
 	 */
-	private @Nullable AvailBuilder builder;
+	public final @NotNull AvailBuilder builder;
 
 	/**
 	 * The {@link Map} from the {@link ModuleRoot#name()} to all of its {@link
@@ -312,36 +310,6 @@ implements ProjectComponent
 	 */
 	private final Tree moduleTree = new Tree(
 		new DefaultMutableTreeNode("(packages hidden root)"));
-
-	/**
-	 * Answer the {@link ModuleNameResolver}.
-	 *
-	 * @return The {@code ModuleNameResolver}.
-	 */
-	public @NotNull ModuleNameResolver resolver ()
-	{
-		return stripNull(resolver);
-	}
-
-	/**
-	 * Answer the {@link AvailBuilder}.
-	 *
-	 * @return An {@code AvailBuilder}.
-	 */
-	public @NotNull AvailBuilder builder ()
-	{
-		return  stripNull(builder);
-	}
-
-	/**
-	 * Answer the {@link AvailRuntime}.
-	 *
-	 * @return The {@code AvailRuntime}.
-	 */
-	public @NotNull AvailRuntime runtime ()
-	{
-		return  stripNull(runtime);
-	}
 
 	/**
 	 * Answer the {@link List} of {@link ModuleEntryPoints} for the provided
@@ -389,7 +357,7 @@ implements ProjectComponent
 	public @NotNull List<String> availableEntryPoints ()
 	{
 		final List<String> entryPoints = new ArrayList<>();
-		for (final LoadedModule loadedModule : builder().loadedModulesCopy())
+		for (final LoadedModule loadedModule : builder.loadedModulesCopy())
 		{
 			if (!loadedModule.entryPoints().isEmpty())
 			{
@@ -407,7 +375,7 @@ implements ProjectComponent
 	@SuppressWarnings("WeakerAccess")
 	public @NotNull List<LoadedModule> loadedModules ()
 	{
-		return builder().loadedModulesCopy();
+		return builder.loadedModulesCopy();
 	}
 
 	/**
@@ -452,7 +420,7 @@ implements ProjectComponent
 	 */
 	public @NotNull ModuleRoots moduleRoots ()
 	{
-		return resolver().moduleRoots();
+		return resolver.moduleRoots();
 	}
 
 	/**
@@ -479,7 +447,7 @@ implements ProjectComponent
 				new ModuleName(fullyQualifiedName);
 			try
 			{
-				names.add(resolver().resolve(moduleName, null));
+				names.add(resolver.resolve(moduleName, null));
 			}
 			catch (final UnresolvedDependencyException e)
 			{
@@ -494,7 +462,7 @@ implements ProjectComponent
 	 */
 	public void refresh ()
 	{
-		resolver().clearCache();
+		resolver.clearCache();
 		final TreeNode modules = newModuleTree();
 		moduleTree.setModel(new DefaultTreeModel(modules));
 		refreshModuleEntryPoints();
@@ -508,7 +476,7 @@ implements ProjectComponent
 	 */
 	private @NotNull TreeNode newModuleTree ()
 	{
-		final ModuleRoots roots = resolver().moduleRoots();
+		final ModuleRoots roots = resolver.moduleRoots();
 		final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode(
 			"(packages hidden root)");
 		// Put the invisible root onto the work stack.
@@ -552,7 +520,7 @@ implements ProjectComponent
 	private void refreshModuleEntryPoints ()
 	{
 		rootEntryPointMap.clear();
-		builder().traceDirectories(
+		builder.traceDirectories(
 			(resolvedName, moduleVersion) ->
 			{
 				assert resolvedName != null;
@@ -602,7 +570,7 @@ implements ProjectComponent
 					isRoot.value = false;
 					assert stack.size() == 1;
 					final ModuleRootNode node =
-						new ModuleRootNode(builder(), moduleRoot);
+						new ModuleRootNode(builder, moduleRoot);
 					parentNode.add(node);
 					stack.addFirst(node);
 					return FileVisitResult.CONTINUE;
@@ -641,7 +609,7 @@ implements ProjectComponent
 					final ResolvedModuleName resolved;
 					try
 					{
-						resolved = resolver().resolve(moduleName, null);
+						resolved = resolver.resolve(moduleName, null);
 					}
 					catch (final UnresolvedDependencyException e)
 					{
@@ -650,7 +618,7 @@ implements ProjectComponent
 						return FileVisitResult.SKIP_SUBTREE;
 					}
 					final ModuleOrPackageNode node = new ModuleOrPackageNode(
-						builder(), moduleName, resolved, true);
+						builder, moduleName, resolved, true);
 					parentNode.add(node);
 					if (resolved.isRename())
 					{
@@ -720,10 +688,10 @@ implements ProjectComponent
 					try
 					{
 						final ResolvedModuleName resolved =
-							resolver().resolve(moduleName, null);
+							resolver.resolve(moduleName, null);
 						final ModuleOrPackageNode node =
 							new ModuleOrPackageNode(
-								builder(), moduleName, resolved, false);
+								builder, moduleName, resolved, false);
 						if (resolved.isRename() || !resolved.isPackage())
 						{
 							parentNode.add(node);
@@ -774,26 +742,27 @@ implements ProjectComponent
 	@Override
 	public void projectOpened ()
 	{
+		final ExecutionManager executionManager = ExecutionManager.getInstance(project);
+		// executionManager.startRunProfile(@NotNull RunProfileStarter starter,
+		//                                       @NotNull RunProfileState state,
+		//                                       @NotNull ExecutionEnvironment environment);
+		// TODO still need a RunProfileStarter
 		try
 		{
-			final ModuleRoots roots = new ModuleRoots("");
 			configuration.sdkMap.forEach((name, sdk) ->
 			{
 				final ModuleRoot mr = sdk.moduleRoot();
-				roots.addRoot(mr);
+				resolver.moduleRoots().addRoot(mr);
 				sdkRootMap.put(name, mr);
 			});
 			configuration.rootMap.forEach((name, root) ->
 			{
 				final ModuleRoot mr = root.moduleRoot();
-				roots.addRoot(mr);
+				resolver.moduleRoots().addRoot(mr);
 				moduleRootMap.put(name, mr);
 			});
-			this.resolver = new ModuleNameResolver(roots);
 			configuration.renameMap.forEach((source, rename) ->
-				this.resolver.addRenameRule(source, rename.target));
-			this.runtime = new AvailRuntime(resolver);
-			this.builder = new AvailBuilder(runtime());
+				resolver.addRenameRule(source, rename.target));
 			initializeAvailSDKs();
 		}
 		catch (final @NotNull ConfigurationException ex)
@@ -808,6 +777,26 @@ implements ProjectComponent
 			ex.errorDialog();
 		}
 	}
+
+//	public void execute (
+//		final @NotNull EntryPointRunConfiguration runConfiguration)
+//	throws ExecutionException
+//	{
+//		final RunManager runManagerEx = RunManagerEx.getInstance(project);
+////		this.pointProgramRunner = ProgramRunner.PROGRAM_RUNNER_EP
+////			.findExtension(EntryPointProgramRunner.class);
+////		final Executor executor =
+////			ExecutorRegistry.getInstance().getExecutorById(EntryPointExecutor.executorId);
+////		final ConfigurationType type = runManagerEx.getConfigurationType(
+////				EntryPointConfigurationType.id);
+////		final EntryPointRunnerAndConfigurationSettings runConfigSettings =
+////			new EntryPointRunnerAndConfigurationSettings(
+////				runManagerEx, runConfiguration);
+////		final ExecutionEnvironment executionEnvironment =
+////			new ExecutionEnvironment(
+////				executor, this.pointProgramRunner, runConfigSettings, project);
+////		pointProgramRunner.execute(executionEnvironment);
+//	}
 
 	@Override
 	public void projectClosed ()
@@ -847,5 +836,8 @@ implements ProjectComponent
 		this.project = project;
 		this.configuration =
 			project.getComponent(AvailPluginConfiguration.class);
+		this.resolver = new ModuleNameResolver(new ModuleRoots(""));
+		this.runtime = new AvailRuntime(resolver);
+		this.builder = new AvailBuilder(runtime);
 	}
 }

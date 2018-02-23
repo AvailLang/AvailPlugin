@@ -49,6 +49,7 @@ import com.intellij.ui.content.ContentManager;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.availlang.plugin.core.AvailComponent;
+import org.availlang.plugin.process.AvailProcessHandler;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -87,22 +88,23 @@ implements ToolWindowFactory
 	/**
 	 * The {@link ConsoleViewImpl} that is the {@link JPanel} of the console.
 	 */
-	private ConsoleViewImpl consoleView;
+	private AvailConsole consoleView;
 
 	@Override
 	public void createToolWindowContent (
 		final @NotNull Project project, 
 		final @NotNull ToolWindow toolWindow)
 	{
+		final AvailComponent component =
+			project.getComponent(AvailComponent.class);
 		this.toolWindow = toolWindow;
 		this.myProject = project;
-		this.consoleView = new ConsoleViewImpl(project, false);
+		final AvailConsoleState state = new AvailConsoleState(component);
+		this.consoleView = new AvailConsole(project, false, state, true);
 		ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
 		this.content = contentFactory.createContent(consoleView, "", false);
 		toolWindow.getContentManager().addContent(content);
 		consoleView.getComponent();
-		final AvailComponent component =
-			project.getComponent(AvailComponent.class);
 		Nulls.stripNull(component).setConsoleView(consoleView);
 	}
 }

@@ -36,6 +36,7 @@ import com.avail.io.TextInterface;
 import com.avail.utility.Nulls;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import org.availlang.plugin.core.AvailComponent;
+import org.availlang.plugin.ui.console.AvailConsole;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -84,7 +85,7 @@ public class AvailPluginTextStream
 	 * @param consoleView
 	 *        The {@link ConsoleViewImpl} to set.
 	 */
-	public void setConsoleView (final @NotNull ConsoleViewImpl consoleView)
+	public void setConsoleView (final @NotNull AvailConsole consoleView)
 	{
 		this.consoleView = consoleView;
 		this.textInterface =
@@ -92,8 +93,8 @@ public class AvailPluginTextStream
 				new ConsoleInputChannel(System.in),
 				new PluginConsoleOutputChannel(consoleView, StreamStyle.OUT),
 				new PluginConsoleOutputChannel(consoleView, StreamStyle.ERR));
-		availComponent.runtime().setTextInterface(textInterface);
-		availComponent.builder().setTextInterface(textInterface);
+		availComponent.runtime.setTextInterface(textInterface);
+		availComponent.builder.setTextInterface(textInterface);
 		try
 		{
 			System.setOut(new BuildPrintStream(

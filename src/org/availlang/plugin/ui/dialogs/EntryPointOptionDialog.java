@@ -121,7 +121,7 @@ extends ChooseElementsDialog<String>
 	{
 		final List<String> entryPoints = new ArrayList<>();
 		final AvailBuilder builder =
-			AvailComponent.getInstance(project).builder();
+			AvailComponent.getInstance(project).builder;
 		for (final LoadedModule loadedModule : builder.loadedModulesCopy())
 		{
 			if (!loadedModule.entryPoints().isEmpty())

@@ -60,10 +60,15 @@ extends DisplayAndBuildModules
 	protected void done (
 		final @NotNull Project project,
 		final @NotNull ProgressManager manager,
-		final @NotNull AnActionEvent event)
+		final @NotNull AnActionEvent event,
+		final @NotNull ResolvedModuleName resolvedModuleName)
 	{
 		RunEntryPoint.
-			runEntryPoint(getAvailComponent(event), manager, entryPointCommand);
+			runEntryPoint(
+				getAvailComponent(event),
+				manager,
+				resolvedModuleName,
+				entryPointCommand);
 	}
 
 	@Override
