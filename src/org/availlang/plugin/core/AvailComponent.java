@@ -50,7 +50,6 @@ import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.tree.IFileElementType;
 import com.intellij.ui.treeStructure.Tree;
 import org.availlang.plugin.actions.events.DummyEvent;
 import org.availlang.plugin.build.BuildModule;
@@ -133,7 +132,7 @@ implements ProjectComponent
 	 * The {@link ConsoleViewImpl} that is the {@link JPanel} of the Avail
 	 * console.
 	 */
-	private ConsoleViewImpl consoleView;
+	public AvailConsole consoleView;
 
 	/**
 	 * Set the {@link #consoleView}.
@@ -145,13 +144,14 @@ implements ProjectComponent
 	public void setConsoleView (final @NotNull AvailConsole consoleView)
 	{
 		this.consoleView = consoleView;
-		outputStream.setConsoleView(consoleView);
+		textStream.setConsoleView(consoleView);
 	}
 
 	/**
-	 * The {@link AvailPluginTextStream} that outputs all Avail data.
+	 * The {@link AvailPluginTextStream} that manages all text for the {@link
+	 * AvailConsole}.
 	 */
-	public final @NotNull AvailPluginTextStream outputStream =
+	public final @NotNull AvailPluginTextStream textStream =
 		new AvailPluginTextStream(this);
 
 	/**

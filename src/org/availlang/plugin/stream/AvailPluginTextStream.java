@@ -90,7 +90,8 @@ public class AvailPluginTextStream
 		this.consoleView = consoleView;
 		this.textInterface =
 			new TextInterface(
-				new ConsoleInputChannel(System.in),
+//				new ConsoleInputChannel(System.in),
+				new PluginConsoleInputChannel(consoleView, StreamStyle.IN_ECHO),
 				new PluginConsoleOutputChannel(consoleView, StreamStyle.OUT),
 				new PluginConsoleOutputChannel(consoleView, StreamStyle.ERR));
 		availComponent.runtime.setTextInterface(textInterface);

@@ -31,24 +31,42 @@
  */
 
 package org.availlang.plugin.ui.console;
-import com.intellij.execution.impl.ConsoleState;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A {@code AvailConsole} is TODO: Document this!
+ * A {@code AvailConsole} is a {@link ConsoleViewImpl} that is used to
+ * specifically interact with the running Avail VM.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 public class AvailConsole
 extends ConsoleViewImpl
 {
+	/**
+	 * The {@link AvailConsoleState} that dictates the current state of this
+	 * {@link AvailConsole}.
+	 */
+	public final AvailConsoleState availConsoleState;
+
+	/**
+	 * Construct a new {@link AvailConsole}.
+	 *
+	 * @param project
+	 *        The active Avail {@link Project}.
+	 * @param viewer
+	 * @param initialState
+	 *        The {@link AvailConsoleState} that dictates the current state of
+	 *        this {@link AvailConsole}.
+	 * @param usePredefinedMessageFilter
+	 *
+	 */
 	public AvailConsole (
 		final @NotNull Project project,
 		final boolean viewer,
-		final @NotNull ConsoleState initialState,
+		final @NotNull AvailConsoleState initialState,
 		final boolean usePredefinedMessageFilter)
 	{
 		super(
@@ -57,5 +75,6 @@ extends ConsoleViewImpl
 			viewer,
 			initialState,
 			usePredefinedMessageFilter);
+		this.availConsoleState = initialState;
 	}
 }

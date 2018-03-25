@@ -44,10 +44,13 @@ import org.availlang.plugin.stream.StreamStyle;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.nio.CharBuffer;
+import java.nio.channels.CompletionHandler;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * A {@code AvailConsoleState} is TODO: Document this!
+ * A {@code AvailConsoleState} is a {@link ConsoleState} that describes the
+ * state of an {@link AvailConsole}.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
@@ -82,6 +85,18 @@ extends ConsoleState
 	private final @NotNull AtomicBoolean isRunningEntryPoint =
 		new AtomicBoolean(false);
 
+	/**
+	 * Set whether or not the Avail VM is presently running an {@link
+	 * EntryPoint}.
+	 *
+	 * @param isRunning
+	 *        {@code true} indicates yes; {@code false} otherwise
+	 */
+	public void isEntryPointRunning (final boolean isRunning)
+	{
+		isRunningEntryPoint.set(isRunning);
+	}
+
 	@Override
 	public boolean isRunning ()
 	{
@@ -109,11 +124,36 @@ extends ConsoleState
 		// TODO hand it to the builder if executing an entry point?
 		if (isRunningEntryPoint.get())
 		{
+			final CompletionHandler <Integer, Object> ch =
+				new CompletionHandler<Integer, Object>()
+				{
+					// TODO build a completion handler for real!!!
+					@Override
+					public void completed (
+						final Integer result,
+						final Object attachment)
+					{
 
+					}
+
+					@Override
+					public void failed (
+						final Throwable exc,
+						final Object attachment)
+					{
+
+					}
+				};
+			final CharBuffer charBuffer = CharBuffer.allocate(input.length());
+			charBuffer.append(input);
+			component.textStream.textInterface().inputChannel().read(
+				charBuffer,
+				null,
+				ch);
 		}
 		else
 		{
-			component.outputStream.writeText(input, StreamStyle.IN_ECHO);
+			component.textStream.writeText(input, StreamStyle.IN_ECHO);
 		}
 	}
 

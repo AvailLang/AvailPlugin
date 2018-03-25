@@ -113,7 +113,7 @@ extends AvailAction
 			{
 				final long runTime =
 					System.currentTimeMillis() - start;
-				component.outputStream
+				component.textStream
 					.writeText(
 						String.format(
 							"Build complete (%d milliseconds)\n",

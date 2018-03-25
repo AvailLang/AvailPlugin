@@ -176,7 +176,9 @@ extends AvailAction
 					window.setTitle("Running: " + command);
 					window.setIndeterminate(true);
 					window.background();
-					component.outputStream
+					component.consoleView.availConsoleState
+						.isEntryPointRunning(true);
+					component.textStream
 						.writeText(command + "\n", StreamStyle.COMMAND);
 					final Semaphore done = new Semaphore(0);
 					component.builder.attemptCommand(
@@ -207,6 +209,8 @@ extends AvailAction
 						(result, cleanup) ->
 						{
 							assert cleanup != null;
+							component.consoleView.availConsoleState
+								.isEntryPointRunning(false);
 							cleanup.value(done::release);
 						},
 						() -> System.err.println("[Failed] Run: "
